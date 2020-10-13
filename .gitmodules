@@ -1,0 +1,13 @@
+[submodule "android/third_party/oboe"]
+	path = android/third_party/oboe
+	url = https://github.com/google/oboe
+[submodule "android/third_party/TinySoundFont"]
+	path = android/third_party/TinySoundFont
+	url = https://github.com/schellingb/TinySoundFont.git
+[submodule "android/third_party/AudioKit"]
+	path = android/third_party/AudioKit
+	url = https://github.com/AudioKit/AudioKit
+[submodule "android/third_party/libnyquist"]
+	path = android/third_party/libnyquist
+	url = https://github.com/mikeperri/libnyquist.git
+	branch = fix-wavpack-int-lossy
