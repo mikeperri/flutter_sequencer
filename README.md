@@ -188,6 +188,7 @@ I haven't tried it on Windows or Linux, but it should work without too many chan
 ### Difficulty: Medium
 - Start using Dart null safety
 - Support tempo automation
+- Support pitch bends and custom tunings
 - MIDI Out instrument
     - Create an instrument that doesn't make any sounds on its own and just sends MIDI
     events to a designated MIDI output port.
