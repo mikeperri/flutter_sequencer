@@ -1,7 +1,20 @@
 # flutter_sequencer
 
-A Flutter plugin for sequencing audio. Use it to build sequences of notes and play them back using
-sampler instruments. Supports looping.
+This Flutter plugin lets you set up sampler instruments and create multi-track sequences of notes
+that play on those instruments. You can specify a loop range for a sequence and schedule volume
+automations.
+
+It uses the [core sampler engine from AudioKit](https://github.com/AudioKit/AudioKit/tree/v4-master/AudioKit/Core/AudioKitCore/Sampler)
+on both Android and iOS, which lets you create an instrument by loading some samples and specifying
+what notes they are. If you play a note you don't have a sample for, it will pitch shift your other
+samples to fill in the gaps. It also supports playing SF2 (SoundFont) files on both platforms, and
+on iOS, you can load any AudioUnit instrument.
+
+The example app is a drum machine. In theory, though, you could make a whole sample-based DAW with
+this plugin. You could also use it for game sound effects, or even to generate a dynamic game
+soundtrack.
+
+![Drum machine example on Android](https://michaeljperri.com/images/DrumMachineExampleAndroid.png)
 
 ## How to use
 ### Create the sequence
@@ -15,20 +28,37 @@ You need to set the tempo and the end beat when you create the sequence.
 final instruments = [
   Sf2Instrument(path: "assets/sf2/TR-808.sf2", isAsset: true),
   SfzInstrument(path: "assets/sfz/SplendidGrandPiano.sfz", isAsset: true),
+  SamplerInstrument(
+    id: "80's FM Bass",
+    sampleDescriptors: [
+      SampleDescriptor(filename: "assets/wav/D3.wav", isAsset: true, noteNumber: 62),
+      SampleDescriptor(filename: "assets/wav/F3.wav", isAsset: true, noteNumber: 65),
+      SampleDescriptor(filename: "assets/wav/G#3.wav", isAsset: true, noteNumber: 68),
+    ]
+  ),
 ];
 ```
 An instrument can be used to create one or more tracks.
 There are four instruments:
 
-1. Sf2Instrument, to load a `.sf2` SoundFont file.
+1. SamplerInstrument, to load a list of SampleDescriptors in the AudioKitSampler manually without an SFZ file
+    - On iOS and Android, it will be played by the [AudioKit Sampler](https://github.com/AudioKit/AudioKit/tree/v4-master/AudioKit/Core/AudioKitCore/Sampler)
+    - A SampleDescriptor can point to a .wav or a .wv (WavPack) file. I recommend using .wv when
+    possible, since it supports lossless compression. It's easy to convert audio files to WavPack
+    format with ffmpeg.
+    - The only things you need to specify about a sample are its path, whether or not it's an asset,
+    and what note number it should correspond to.
+    - Optionally, you can set a note range or a velocity range for each sample. You can create
+    "velocity layers" like this, where lower velocities trigger different samples than higher ones.
+2. SfzInstrument, to load a `.sfz` SFZ file.
+    - This will also be played by the AudioKit sampler.
+    - Only a few SFZ opcodes are supported. Look at sfz_parser.dart to see which ones are
+    acknowledged.
+    - This is not a full-fledged SFZ player. SFZ just provides a convenient format to load samples
+    into the sampler.
+3. Sf2Instrument, to load a `.sf2` SoundFont file.
     - On iOS, it will be played by the built-in Apple MIDI synth AudioUnit
     - On Android, it will be played by [tinysoundfont](https://github.com/schellingb/TinySoundFont)
-2. SfzInstrument, to load a `.sfz` SFZ file.
-    - On iOS and Android, it will be played by the [AudioKit Sampler](https://github.com/AudioKit/AudioKit/tree/v4-master/AudioKit/Core/AudioKitCore/Sampler)
-    - Only a few SFZ opcodes are supported. See sfz_parser.dart to see which ones are acknowledged.
-    - This is not a full-fledged SFZ player. SFZ just provides a convenient format to load samples into the sampler.
-3. SamplerInstrument, to load a list of SampleDescriptors in the AudioKitSampler manually without an SFZ file
-    - Use this if you want to build a sampler at runtime
 4. AudioUnitInstrument, to load an AudioUnit
     - This will only work on iOS
         
@@ -58,7 +88,7 @@ your widget's state.
 
 ### Schedule events on the tracks
 ```dart
-track.addNote(pitch: 60, velocity: 0.7, startBeat: 0.0, durationBeats: 2.0);
+track.addNote(noteNumber: 60, velocity: 0.7, startBeat: 0.0, durationBeats: 2.0);
 ```
 This will add middle C (MIDI note number 60) to the sequence, starting from beat 0, and stopping
 after 2 beats.
@@ -127,12 +157,12 @@ Gets the volume of a track. A VolumeEvent may have changed it during playback.
 
 ### Real-time playback
 ```
-track.startNoteNow(pitch: 60, velocity: 0.75);
+track.startNoteNow(noteNumber: 60, velocity: 0.75);
 ```
 Send a MIDI Note On message to the track immediately.
 
 ```
-track.stopNoteNow(pitch: 60);
+track.stopNoteNow(noteNumber: 60);
 ```
 Send a MIDI Note Off message to the track immediately.
 
@@ -163,8 +193,10 @@ will occur indefinitely, so the buffer will never be big enough. To deal with th
 will periodically "top off" each track's buffer.
 
 ## Development instructions
-Note that the Android build uses git submodules. The submodules will be checked out as part of the
-Gradle build.
+Note that the Android build uses several third party libraries. The Gradle build will download them
+from GitHub into the android/third_party directory.
+
+The iOS build depends on the AudioKit library. It will be downloaded by CocoaPods.
 
 To build the C++ tests on Mac OS, go into the `cpp_test` directory, and run
 ```
@@ -179,8 +211,11 @@ Then, to run the tests,
 I haven't tried it on Windows or Linux, but it should work without too many changes.
 
 ## To Do
+PRs are welcome! If you use this plugin in your project, please consider contributing by fixing a
+bug or by tackling one of these to-do items.
+
 ### Difficulty: Easy
-- Enable setting the AudioKit Sampler envelope parameters
+- (important) Enable setting the AudioKit Sampler envelope parameters
 - Change position_frame_t to 64-bit integer to avoid overflow errors
 - Make constants configurable (TOP_OFF_PERIOD_MS and LEAD_FRAMES)
 - Support federated plugins
@@ -192,9 +227,9 @@ I haven't tried it on Windows or Linux, but it should work without too many chan
 - MIDI Out instrument
     - Create an instrument that doesn't make any sounds on its own and just sends MIDI
     events to a designated MIDI output port.
-- Refactor Dart code and use consistent formatting
-    - GlobalState, Sequence, and Track can probably be simplified
-- Refactor iOS and Android backend and use consistent formatting
+- Refactoring
+    - GlobalState, Sequence, and Track should have a clear separation of responsibilities
+    - Engine, Sequencer, Mixer, Scheduler do too
     - "Track index" and "Track ID" are used interchangeably, "Track ID" should be used everywhere
     - Make the names and organization of the different files (Plugin/Engine/Scheduler) consistent
 - Optimize UI performance of example app
@@ -222,6 +257,8 @@ I haven't tried it on Windows or Linux, but it should work without too many chan
 - Support Windows
     - Some of the code in the Android directory might be able to be reused
 - Record audio output
+- Support React Native?
+    - Could use dart2js
 
 #### Difficulty: Very Hard
 - Audio graph

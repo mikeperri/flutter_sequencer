@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_sequencer/global_state.dart';
+import 'package:flutter_sequencer/models/sample_descriptor.dart';
 
 import 'package:flutter_sequencer/sequence.dart';
 import 'package:flutter_sequencer/instrument.dart';
@@ -47,6 +48,14 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
     final instruments = [
       Sf2Instrument(path: "assets/sf2/TR-808.sf2", isAsset: true),
       SfzInstrument(path: "assets/sfz/SplendidGrandPiano.sfz", isAsset: true),
+      SamplerInstrument(
+        id: "80's FM Bass",
+        sampleDescriptors: [
+          SampleDescriptor(filename: "assets/wav/D3.wav", isAsset: true, noteNumber: 62),
+          SampleDescriptor(filename: "assets/wav/F3.wav", isAsset: true, noteNumber: 65),
+          SampleDescriptor(filename: "assets/wav/G#3.wav", isAsset: true, noteNumber: 68),
+        ]
+      )
     ];
 
     sequence.createTracks(instruments).then((tracks) {
@@ -139,20 +148,20 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
     selectedTrack.changeVolumeNow(volume: nextVolume);
   }
 
-  handleVelocitiesChange(int trackId, int step, int pitch, double velocity) {
+  handleVelocitiesChange(int trackId, int step, int noteNumber, double velocity) {
     final track = tracks.firstWhere((track) => track.id == trackId);
 
-    trackStepSequencerStates[trackId].setVelocity(step, pitch, velocity);
+    trackStepSequencerStates[trackId].setVelocity(step, noteNumber, velocity);
 
     syncTrack(track);
   }
 
   syncTrack(track) {
     track.clearEvents();
-    trackStepSequencerStates[track.id].iterateEvents((step, pitch, velocity) {
+    trackStepSequencerStates[track.id].iterateEvents((step, noteNumber, velocity) {
       if (step < stepCount) {
         track.addNote(
-          pitch: pitch,
+          noteNumber: noteNumber,
           velocity: velocity,
           startBeat: step.toDouble(),
           durationBeats: 1.0);
@@ -166,6 +175,7 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
 
     trackStepSequencerStates[tracks[0].id] = projectState.drumState;
     trackStepSequencerStates[tracks[1].id] = projectState.pianoState;
+    trackStepSequencerStates[tracks[2].id] = projectState.bassState;
 
     handleStepCountChange(projectState.stepCount);
     handleTempoChange(projectState.tempo);
@@ -173,6 +183,7 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
 
     syncTrack(tracks[0]);
     syncTrack(tracks[1]);
+    syncTrack(tracks[2]);
   }
 
   handleReset() {

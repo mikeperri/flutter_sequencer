@@ -56,11 +56,11 @@ class _DrumMachineWidgetState extends State<DrumMachineWidget> with SingleTicker
   }
 
   void handleNoteOn(int col) {
-    widget.track.startNoteNow(pitch: widget.columnPitches[col], velocity: .75);
+    widget.track.startNoteNow(noteNumber: widget.columnPitches[col], velocity: .75);
   }
 
   void handleNoteOff(int col) {
-    widget.track.stopNoteNow(pitch: widget.columnPitches[col]);
+    widget.track.stopNoteNow(noteNumber: widget.columnPitches[col]);
   }
 
   @override

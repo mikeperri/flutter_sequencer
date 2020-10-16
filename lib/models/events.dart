@@ -61,7 +61,7 @@ class MidiEvent extends SchedulerEvent {
 
   static MidiEvent ofNoteOn({
     @required double beat,
-    @required int pitch,
+    @required int noteNumber,
     @required int velocity,
   }) {
     if (velocity > 127 || velocity < 0) throw 'Velocity must be in range 0-127';
@@ -69,19 +69,19 @@ class MidiEvent extends SchedulerEvent {
     return MidiEvent(
       beat: beat,
       midiStatus: 144,
-      midiData1: pitch,
+      midiData1: noteNumber,
       midiData2: velocity,
     );
   }
 
   static MidiEvent ofNoteOff({
     @required double beat,
-    @required int pitch,
+    @required int noteNumber,
   }) {
     return MidiEvent(
       beat: beat,
       midiStatus: 128,
-      midiData1: pitch,
+      midiData1: noteNumber,
       midiData2: 0,
     );
   }

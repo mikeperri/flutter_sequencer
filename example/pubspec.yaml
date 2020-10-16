@@ -44,6 +44,7 @@ flutter:
     - assets/sfz/
     - assets/sfz/samples/
     - assets/sf2/
+    - assets/wav/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

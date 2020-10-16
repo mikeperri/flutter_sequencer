@@ -12,24 +12,26 @@ abstract class Instrument  {
   }
 }
 
-/// Describes an instrument in SF2 format.
-class Sf2Instrument extends Instrument {
-  Sf2Instrument({ String path, bool isAsset })
-    : super(path, isAsset);
+/// Describes a sampler instrument. Use this to create a sampler dynamically.
+/// Will be played by the AudioKit Sampler on Android and iOS.
+class SamplerInstrument extends Instrument {
+  final List<SampleDescriptor> sampleDescriptors;
+
+  SamplerInstrument({ String id, this.sampleDescriptors }) : super(id, false);
 }
 
-/// Describes an instrument in SFZ format.
+/// Describes an instrument in SFZ format. The SFZ will be parsed and used to
+/// create a SamplerInstrument.
 class SfzInstrument extends Instrument {
   SfzInstrument({ String path, bool isAsset })
     : super(path, isAsset);
 }
 
-/// Describes a sampler instrument. Use this to create a sampler dynamically
-/// instead of using an SFZ file.
-class SamplerInstrument extends Instrument {
-  final List<SampleDescriptor> sampleDescriptors;
-
-  SamplerInstrument({ String id, this.sampleDescriptors }) : super(id, false);
+/// Describes an instrument in SF2 format. Will be played by the SoundFont
+/// player for the current platform.
+class Sf2Instrument extends Instrument {
+  Sf2Instrument({ String path, bool isAsset })
+    : super(path, isAsset);
 }
 
 /// Describes an AudioUnit instrument (Apple platforms only.)

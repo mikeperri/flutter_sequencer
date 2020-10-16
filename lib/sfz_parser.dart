@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:math';
 import 'package:flutter/services.dart' show rootBundle;
 
 import 'models/sample_descriptor.dart';
@@ -34,6 +33,33 @@ class SfzParseResult {
   SfzParseResult({ this.sampleDescriptors, this.warnings });
 }
 
+class SfzParserState {
+  int noteNumber;
+  int minimumNoteNumber;
+  int maximumNoteNumber;
+  int minimumVelocity;
+  int maximumVelocity;
+  String samplePath;
+  String loopMode;
+  double loopStartPoint;
+  double loopEndPoint;
+
+  resetForGroup() {
+    noteNumber = null;
+    minimumNoteNumber = null;
+    maximumNoteNumber = null;
+    minimumVelocity = null;
+    maximumVelocity = null;
+    loopMode = null;
+    loopStartPoint = null;
+    loopEndPoint = null;
+  }
+
+  resetForRegion() {
+    samplePath = null;
+  }
+}
+
 /// Based on AudioKit Sampler's SFZ parser
 /// https://github.com/AudioKit/AudioKit/blob/c2a7712ead3ccca86eb437bfd03bf0c09d6fba6c/AudioKit/Common/Nodes/Playback/Samplers/Sampler/AKSampler%2BSFZ.swift
 Future<SfzParseResult> parseSfz(String sfzFilename, bool isAsset) async {
@@ -45,15 +71,7 @@ Future<SfzParseResult> parseSfz(String sfzFilename, bool isAsset) async {
     sfzContents = await File(sfzFilename).readAsString();
   }
 
-  var minimumNoteNumber = 0;
-  var maximumNoteNumber = 127;
-  var noteNumber = 60;
-  var minimumVelocity = 0;
-  var maximumVelocity = 127;
-  String samplePath;
-  var loopMode = '';
-  var loopStartPoint = 0.0;
-  var loopEndPoint = 0.0;
+  final state = SfzParserState();
 
   final samplesBaseUrl = Uri.file(sfzFilename).resolve('.');
   final lines = sfzContents.split('\n');
@@ -71,27 +89,27 @@ Future<SfzParseResult> parseSfz(String sfzFilename, bool isAsset) async {
     final key = keyAndValue[0];
     final value = keyAndValue[1];
     if (key == 'key') {
-      noteNumber = int.parse(value);
-      minimumNoteNumber = noteNumber;
-      maximumNoteNumber = noteNumber;
+      state.noteNumber = int.parse(value);
+      state.minimumNoteNumber = state.noteNumber;
+      state.maximumNoteNumber = state.noteNumber;
     } else if (key == 'lokey') {
-      minimumNoteNumber = int.parse(value);
+      state.minimumNoteNumber = int.parse(value);
     } else if (key == 'hikey') {
-      maximumNoteNumber = int.parse(value);
+      state.maximumNoteNumber = int.parse(value);
     } else if (key == 'pitch_keycenter') {
-      noteNumber = int.parse(value);
+      state.noteNumber = int.parse(value);
     } else if (key == 'lovel') {
-      minimumVelocity = int.parse(value);
+      state.minimumVelocity = int.parse(value);
     } else if (key == 'hivel') {
-      maximumVelocity = int.parse(value);
+      state.maximumVelocity = int.parse(value);
     } else if (key == 'loop_mode') {
-      loopMode = value;
+      state.loopMode = value;
     } else if (key == 'loop_start') {
-      loopStartPoint = double.parse(value);
+      state.loopStartPoint = double.parse(value);
     } else if (key == 'loop_end') {
-      loopEndPoint = double.parse(value);
+      state.loopEndPoint = double.parse(value);
     } else if (key == 'sample') {
-      samplePath =
+      state.samplePath =
         value.split('/').map((part) => Uri.encodeComponent(part)).join('/');
     } else {
       warnings.add(UnknownOpcodeWarning(key, lineNumber));
@@ -107,13 +125,13 @@ Future<SfzParseResult> parseSfz(String sfzFilename, bool isAsset) async {
 
     if (trimmed.startsWith('<group>')) {
       // parse a <group> line
+      state.resetForGroup();
       for (var part in trimmed.substring(7).split(RegExp(r'\s+'))) {
         handleOpcode(part, lineNumber);
       }
     } else if (trimmed.startsWith('<region>')) {
+      state.resetForRegion();
       // parse a <region> line
-
-      samplePath = null;
       final parts =
         trimmed
           .substring(8)
@@ -124,31 +142,26 @@ Future<SfzParseResult> parseSfz(String sfzFilename, bool isAsset) async {
         handleOpcode(part, lineNumber);
       }
 
-      final noteFrequency = 440.0 *
-        pow(2.0, (noteNumber.roundToDouble() - 69.0) / 12.0);
-
-      if (samplePath == null) {
+      if (state.samplePath == null) {
         warnings.add(MissingOpcodeWarning('sample', lineNumber));
         continue;
       }
 
-      final sampleAbsolutePath = samplesBaseUrl.resolve(samplePath).path.toString();
+      final sampleAbsolutePath =
+        samplesBaseUrl.resolve(state.samplePath).path.toString();
 
       sampleDescriptors.add(
         SampleDescriptor(
           filename: sampleAbsolutePath,
           isAsset: isAsset,
-          noteNumber: noteNumber,
-          noteFrequency: noteFrequency,
-          minimumNoteNumber: minimumNoteNumber,
-          maximumNoteNumber: maximumNoteNumber,
-          minimumVelocity: minimumVelocity,
-          maximumVelocity: maximumVelocity,
-          isLooping: loopMode != '',
-          loopStartPoint: loopStartPoint,
-          loopEndPoint: loopEndPoint,
-          startPoint: 0.0,
-          endPoint: 0.0,
+          noteNumber: state.noteNumber,
+          minimumNoteNumber: state.minimumNoteNumber,
+          maximumNoteNumber: state.maximumNoteNumber,
+          minimumVelocity: state.minimumVelocity,
+          maximumVelocity: state.maximumVelocity,
+          isLooping: state.loopMode != null,
+          loopStartPoint: state.loopStartPoint,
+          loopEndPoint: state.loopEndPoint,
         ));
     }
   }

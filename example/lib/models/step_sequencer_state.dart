@@ -1,31 +1,31 @@
 class StepSequencerState {
-  Map<int, Map<int, double>> stepPitchVelocityMap = {};
+  Map<int, Map<int, double>> stepNoteNumberVelocityMap = {};
 
-  void setVelocity(int step, int pitch, double velocity) {
-    var pitchVelocityMap = stepPitchVelocityMap[step];
+  void setVelocity(int step, int noteNumber, double velocity) {
+    var noteNumberVelocityMap = stepNoteNumberVelocityMap[step];
 
-    if (pitchVelocityMap == null) {
-      pitchVelocityMap = {};
-      stepPitchVelocityMap[step] = pitchVelocityMap;
+    if (noteNumberVelocityMap == null) {
+      noteNumberVelocityMap = {};
+      stepNoteNumberVelocityMap[step] = noteNumberVelocityMap;
     }
 
-    pitchVelocityMap[pitch] = velocity;
+    noteNumberVelocityMap[noteNumber] = velocity;
   }
 
-  double getVelocity(int step, int pitch) {
-    if (stepPitchVelocityMap[step] == null
-      || stepPitchVelocityMap[step][pitch] == null) {
+  double getVelocity(int step, int noteNumber) {
+    if (stepNoteNumberVelocityMap[step] == null
+      || stepNoteNumberVelocityMap[step][noteNumber] == null) {
       return 0;
     } else {
-      return stepPitchVelocityMap[step][pitch];
+      return stepNoteNumberVelocityMap[step][noteNumber];
     }
   }
 
-  void iterateEvents(Function(int step, int pitch, double velocity) callback) {
-    stepPitchVelocityMap.forEach((step, pitchVelocityMap) {
-      pitchVelocityMap.forEach((pitch, velocity) {
+  void iterateEvents(Function(int step, int noteNumber, double velocity) callback) {
+    stepNoteNumberVelocityMap.forEach((step, noteNumberVelocityMap) {
+      noteNumberVelocityMap.forEach((noteNumber, velocity) {
         if (velocity > 0) {
-          callback(step, pitch, velocity);
+          callback(step, noteNumber, velocity);
         }
       });
     });

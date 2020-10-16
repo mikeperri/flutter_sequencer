@@ -9,6 +9,7 @@ class ProjectState {
     this.isLooping,
     this.drumState,
     this.pianoState,
+    this.bassState,
   });
 
   final int stepCount;
@@ -16,6 +17,7 @@ class ProjectState {
   final bool isLooping;
   final StepSequencerState drumState;
   final StepSequencerState pianoState;
+  final StepSequencerState bassState;
 
   static ProjectState empty() {
     return ProjectState(
@@ -24,6 +26,7 @@ class ProjectState {
       isLooping: INITIAL_IS_LOOPING,
       drumState: StepSequencerState(),
       pianoState: StepSequencerState(),
+      bassState: StepSequencerState(),
     );
   }
 
@@ -144,12 +147,15 @@ class ProjectState {
     pianoState.setVelocity(46, 72, 0.9);
     pianoState.setVelocity(47, 60, 0.9);
 
+    final bassState = StepSequencerState();
+
     return ProjectState(
       stepCount: 48,
       tempo: 480,
       isLooping: true,
       pianoState: pianoState,
-      drumState: drumState
+      drumState: drumState,
+      bassState: bassState,
     );
   }
 }

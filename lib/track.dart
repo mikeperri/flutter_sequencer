@@ -19,18 +19,18 @@ class Track {
 
   /// Handles a Note On event on this track immediately.
   /// The event will not be added to this track's events.
-  void startNoteNow({ int pitch, double velocity }) {
+  void startNoteNow({ int noteNumber, double velocity }) {
     final nextBeat = sequence.getBeat();
-    final event = MidiEvent.ofNoteOn(beat: nextBeat, pitch: pitch, velocity: _velocityToMidi(velocity));
+    final event = MidiEvent.ofNoteOn(beat: nextBeat, noteNumber: noteNumber, velocity: _velocityToMidi(velocity));
 
     NativeBridge.handleEventsNow(id, [event], Sequence.globalState.sampleRate, sequence.tempo);
   }
 
   /// Handles a Note Off event on this track immediately.
   /// The event will not be added to this track's events.
-  void stopNoteNow({ int pitch }) {
+  void stopNoteNow({ int noteNumber }) {
     final nextBeat = sequence.getBeat();
-    final event = MidiEvent.ofNoteOff(beat: nextBeat, pitch: pitch);
+    final event = MidiEvent.ofNoteOff(beat: nextBeat, noteNumber: noteNumber);
 
     NativeBridge.handleEventsNow(id, [event], Sequence.globalState.sampleRate, sequence.tempo);
   }
@@ -46,20 +46,20 @@ class Track {
 
   /// Adds a Note On and Note Off event to this track.
   /// This does not sync the events to the backend.
-  void addNote({ int pitch, double velocity, double startBeat, double durationBeats }) {
+  void addNote({ int noteNumber, double velocity, double startBeat, double durationBeats }) {
     assert(velocity > 0 && velocity <= 1);
 
     final noteOnEvent =
       MidiEvent.ofNoteOn(
         beat: startBeat,
-        pitch: pitch,
+        noteNumber: noteNumber,
         velocity: _velocityToMidi(velocity),
       );
 
     final noteOffEvent =
       MidiEvent.ofNoteOff(
         beat: startBeat + durationBeats,
-        pitch: pitch,
+        noteNumber: noteNumber,
       );
 
     _addEvent(noteOnEvent);

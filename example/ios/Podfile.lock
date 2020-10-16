@@ -28,7 +28,7 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   AudioKit: 059a783edd8340ca0130a66d1ad126aa5bb8ad92
   Flutter: 0e3d915762c693b495b44d77113d4970485de6ec
-  flutter_sequencer: 1c5026917ef3d95077e42dd7b85889f1a6a004b1
+  flutter_sequencer: 0ef072d5145a7675bea148e83da34bafe53aad84
 
 PODFILE CHECKSUM: 85830bbef90cefaa1b7e6c49baf14faacab79f4f
 
