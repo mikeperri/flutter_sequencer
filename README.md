@@ -251,9 +251,6 @@ bug or by tackling one of these to-do items.
         - It may be difficult to build sfizz and its dependencies for Android and iOS. Ideally it
         would have a more modular build - this project doesn't need its support for AU/LV/VST,
         audio output, and audio file decoding.
-- Effects
-    - Create some effects, like reverbs and compressors. The built-in Apple AudioUnits could be used
-    on iOS. There would need to be effect buses.
 - Support Windows
     - Some of the code in the Android directory might be able to be reused
 - Record audio output
@@ -261,9 +258,13 @@ bug or by tackling one of these to-do items.
     - Could use dart2js
 
 #### Difficulty: Very Hard
-- Audio graph
+- (important) Audio graph
     - Create a graph of tracks and effects where any output can be connected to any input.
-    - At that point, maybe the whole audio graph should be cross-platform. On iOS, it could be
-    wrapped in an AudioUnit, and AudioUnit instruments and effects could be connected to it via
-    input and output buses.
+    - At that point, the most of the audio engine can be cross-platform. On iOS, it could be
+    wrapped in one AudioUnit, and external AudioUnit instruments and effects could be connected to it
+    via input and output buses.
+    - [LabSound](https://github.com/LabSound/LabSound/tree/dev) seems like the library to use
+        - It's based on WebAudio, so there could also be a web backend
+	- Can be used to add some key effects like reverb, delay, and compression
+	- Supports audio input, writing output to file, and other DAW stuff
 - Support Web
