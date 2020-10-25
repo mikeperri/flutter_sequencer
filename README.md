@@ -232,7 +232,6 @@ bug or by tackling one of these to-do items.
     - Engine, Sequencer, Mixer, Scheduler do too
     - "Track index" and "Track ID" are used interchangeably, "Track ID" should be used everywhere
     - Make the names and organization of the different files (Plugin/Engine/Scheduler) consistent
-- Optimize UI performance of example app
 - Support MacOS
     - Most of the iOS code should be able to be reused
 - Add more C++ tests
