@@ -31,49 +31,29 @@ class Grid extends StatelessWidget {
       builder: (context, constraints) {
         final columnsCount = columnLabels.length;
         final cellSize = min(constraints.maxWidth / columnLabels.length, 50.0);
-        final rowWidgets = new List<Widget>();
 
-        // Build a row of label widgets
-        final labelWidgets = new List<Widget>();
-        for (var col = 0; col < columnsCount; col++) {
-          final labelWidget =
-          Listener(
-            onPointerDown: (d) => onNoteOn(col),
-            onPointerUp: (d) => onNoteOff(col),
-            child: Container(
-              color: Colors.blue,
-              width: cellSize,
-              height: cellSize,
-              child: Center(child: Text(columnLabels[col])),
-            ),
-          );
+        return ListView.builder(
+          padding: EdgeInsets.fromLTRB(0, 0, 0, 16),
+          shrinkWrap: true,
+          itemCount: stepCount,
+          itemBuilder: (BuildContext context, int step) {
+            final cellWidgets = new List<Widget>();
 
-          labelWidgets.add(labelWidget);
-        }
+            for (var col = 0; col < columnsCount; col++) {
+              final velocity = getVelocity(step, col);
 
-        rowWidgets.add(Row(children: labelWidgets));
+              final cellWidget = Cell(
+                size: cellSize,
+                velocity: velocity,
+                isCurrentStep: step == currentStep,
+                onChange: (velocity) => onChange(col, step, velocity),
+              );
 
-        // Build a row of Cell widgets for each step
-        for (var step = 0; step < stepCount; step++) {
-          final cellWidgets = new List<Widget>();
-
-          for (var col = 0; col < columnsCount; col++) {
-            final velocity = getVelocity(step, col);
-
-            final cellWidget = Cell(
-              size: cellSize,
-              velocity: velocity,
-              isCurrentStep: step == currentStep,
-              onChange: (velocity) => onChange(col, step, velocity),
-            );
-
-            cellWidgets.add(cellWidget);
+              cellWidgets.add(cellWidget);
+            }
+            return Row(children: cellWidgets);
           }
-
-          rowWidgets.add(Row(children: cellWidgets));
-        }
-
-        return Column(children: rowWidgets);
+        );
       },
     );
   }

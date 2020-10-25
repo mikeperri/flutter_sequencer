@@ -202,18 +202,28 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
     return Center(
       child: Column(
         children: [
-          Transport(
-            isPlaying: isPlaying,
-            isLooping: isLooping,
-            onTogglePlayPause: handleTogglePlayPause,
-            onStop: handleStop,
-            onToggleLoop: handleToggleLoop,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Transport(
+                isPlaying: isPlaying,
+                isLooping: isLooping,
+                onTogglePlayPause: handleTogglePlayPause,
+                onStop: handleStop,
+                onToggleLoop: handleToggleLoop,
+              ),
+              PositionView(position: position),
+            ]
           ),
-          PositionView(position: position),
-          StepCountSelector(stepCount: stepCount, onChange: handleStepCountChange),
-          TempoSelector(
-            selectedTempo: tempo,
-            handleChange: handleTempoChange,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              StepCountSelector(stepCount: stepCount, onChange: handleStepCountChange),
+              TempoSelector(
+                selectedTempo: tempo,
+                handleChange: handleTempoChange,
+              ),
+            ],
           ),
           TrackSelector(
             tracks: tracks,
@@ -259,9 +269,7 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
         ),
       home: Scaffold(
         appBar: AppBar(title: const Text('Drum machine example')),
-        body: SingleChildScrollView(
-          child: _getMainView(),
-        ),
+        body: _getMainView(),
       ),
     );
   }

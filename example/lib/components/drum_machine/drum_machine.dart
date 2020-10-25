@@ -65,29 +65,29 @@ class _DrumMachineWidgetState extends State<DrumMachineWidget> with SingleTicker
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.fromLTRB(32, 16, 32, 16),
-      decoration: BoxDecoration(
-        color: Colors.black54,
-      ),
-      child: Column(
-        children: [
-          VolumeSlider(
-            value: widget.volume,
-            onChange: handleVolumeChange
-          ),
-          Grid(
-            columnLabels: widget.rowLabels,
-            getVelocity: getVelocity,
-            stepCount: widget.stepCount,
-            currentStep: widget.currentStep,
-            onChange: handleVelocityChange,
-            onNoteOn: handleNoteOn,
-            onNoteOff: handleNoteOff
-          ),
-        ],
-      )
-    );
+    return Expanded(child: Container(
+        padding: EdgeInsets.fromLTRB(32, 16, 32, 0),
+        decoration: BoxDecoration(
+          color: Colors.black54,
+        ),
+        child: Column(
+          children: [
+            VolumeSlider(
+              value: widget.volume,
+              onChange: handleVolumeChange
+            ),
+            Expanded(child: Grid(
+              columnLabels: widget.rowLabels,
+              getVelocity: getVelocity,
+              stepCount: widget.stepCount,
+              currentStep: widget.currentStep,
+              onChange: handleVelocityChange,
+              onNoteOn: handleNoteOn,
+              onNoteOff: handleNoteOff
+            )),
+          ]
+        )
+      ));
   }
 }
 
