@@ -113,7 +113,7 @@ extern "C" {
     }
 
     __attribute__((visibility("default"))) __attribute__((used))
-    void add_track_sf2(const char* filename, bool isAsset, Dart_Port callbackPort) {
+    void add_track_sf2(const char* filename, bool isAsset, int32_t presetIndex, Dart_Port callbackPort) {
         check_engine();
 
         std::thread([=]() {
@@ -121,7 +121,7 @@ extern "C" {
             auto channelCount = engine->getChannelCount();
             auto isStereo = channelCount > 1;
 
-            auto sf2Instrument = new SoundFontInstrument(sampleRate, isStereo, filename, isAsset);
+            auto sf2Instrument = new SoundFontInstrument(sampleRate, isStereo, filename, isAsset, presetIndex);
             auto trackIndex = engine->mSchedulerMixer.addTrack(sf2Instrument);
 
             callbackToDartInt32(callbackPort, trackIndex);

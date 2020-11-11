@@ -103,7 +103,7 @@ public class CocoaEngine {
         }
     }
     
-    func addTrackSf2(sf2Path: String, isAsset: Bool, completion: @escaping (track_index_t) -> Void) {
+    func addTrackSf2(sf2Path: String, isAsset: Bool, presetIndex: Int32, completion: @escaping (track_index_t) -> Void) {
         let trackIndex = SchedulerAddTrack(self.scheduler)
 
         AudioUnitUtils.loadAudioUnits { avAudioUnitComponents in
@@ -119,7 +119,7 @@ public class CocoaEngine {
                     
                     if let url = self.getUrlForPath(sf2Path, isAsset: isAsset) {
                         
-                        loadSoundFont(avAudioUnit: avAudioUnit, soundFontURL: url)
+                        loadSoundFont(avAudioUnit: avAudioUnit, soundFontURL: url, presetIndex: presetIndex)
                         
                         self.setTrackAudioUnit(trackIndex: trackIndex, avAudioUnit: avAudioUnit)
                         

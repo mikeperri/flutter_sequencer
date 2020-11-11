@@ -10,3 +10,6 @@ const TOP_OFF_PERIOD_MS = 1000;
 /// "Lead frames" account for the fact that it may take some time to build the
 /// events and sync them with the native sequencer engine.
 const LEAD_FRAMES = 1024;
+
+/// The patch number to select from a sf2 file.
+const DEFAULT_PATCH_NUMBER = 0;

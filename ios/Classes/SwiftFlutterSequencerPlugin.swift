@@ -139,8 +139,8 @@ func buildKeyMap(trackIndex: track_index_t, resultCallbackPort: Dart_Port) {
 }
 
 @_cdecl("add_track_sf2")
-func addTrackSf2(path: UnsafePointer<CChar>, isAsset: Bool, callbackPort: Dart_Port) {
-    plugin.engine!.addTrackSf2(sf2Path: String(cString: path), isAsset: isAsset) { trackIndex in
+func addTrackSf2(path: UnsafePointer<CChar>, isAsset: Bool, presetIndex: Int32, callbackPort: Dart_Port) {
+    plugin.engine!.addTrackSf2(sf2Path: String(cString: path), isAsset: isAsset, presetIndex: presetIndex) { trackIndex in
         callbackToDartInt32(callbackPort, trackIndex)
     }
 }
