@@ -7,7 +7,7 @@ func isAppleSampler(component: AVAudioUnitComponent) -> Bool {
     return isApple && isMIDISynth
 }
 
-func loadSoundFont(avAudioUnit: AVAudioUnit, soundFontURL: URL) {
+func loadSoundFont(avAudioUnit: AVAudioUnit, soundFontURL: URL, presetIndex: Int32) {
     let audioUnit = avAudioUnit.audioUnit
     var mutableSoundFontURL = soundFontURL
     
@@ -34,7 +34,7 @@ func loadSoundFont(avAudioUnit: AVAudioUnit, soundFontURL: URL) {
     // Send program change command for patch 0 to preload
     let channel = UInt32(0)
     let pcCommand = UInt32(0xC0 | channel)
-    let patch1 = UInt32(0)
+    let patch1 = UInt32(presetIndex)
     result = MusicDeviceMIDIEvent(audioUnit, pcCommand, patch1, 0, 0)
     assert(result == noErr, "Patch could not be preloaded")
     
@@ -48,4 +48,7 @@ func loadSoundFont(avAudioUnit: AVAudioUnit, soundFontURL: URL) {
                                   UInt32(MemoryLayout.size(ofValue: enabled)))
 
     assert(result == noErr, "Preload could not be disabled")
+
+    result = MusicDeviceMIDIEvent(audioUnit, pcCommand, patch1, 0, 0)
+    assert(result == noErr, "Patch could not be changed")
 }

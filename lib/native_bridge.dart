@@ -41,8 +41,8 @@ final nBuildKeyMap = nativeLib.lookupFunction<
   void Function(int, int)>('build_key_map');
 
 final nAddTrackSf2 = nativeLib.lookupFunction<
-  Void Function(Pointer<Utf8>, Int8, Int64),
-  void Function(Pointer<Utf8>, int, int)>('add_track_sf2');
+  Void Function(Pointer<Utf8>, Int8, Int32, Int64),
+  void Function(Pointer<Utf8>, int, int, int)>('add_track_sf2');
 
 final nRemoveTrack = nativeLib.lookupFunction<
   Void Function(Int32),
@@ -156,9 +156,9 @@ class NativeBridge {
       nBuildKeyMap(trackIndex, port.nativePort));
   }
 
-  static Future<int> addTrackSf2(String filename, bool isAsset) {
+  static Future<int> addTrackSf2(String filename, bool isAsset, int patchNumber) {
     final filenameUtf8Ptr = Utf8.toUtf8(filename);
-    return singleResponseFuture<int>((port) => nAddTrackSf2(filenameUtf8Ptr, isAsset ? 1 : 0, port.nativePort));
+    return singleResponseFuture<int>((port) => nAddTrackSf2(filenameUtf8Ptr, isAsset ? 1 : 0, patchNumber, port.nativePort));
   }
 
   static Future<int> addTrackAudioUnit(String id) async {

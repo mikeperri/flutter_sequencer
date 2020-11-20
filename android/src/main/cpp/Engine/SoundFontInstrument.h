@@ -9,7 +9,11 @@
 
 class SoundFontInstrument : public IInstrument {
 public:
-    SoundFontInstrument(int32_t sampleRate, bool isStereo, const char* path, bool isAsset) {
+    int presetIndex;
+
+    SoundFontInstrument(int32_t sampleRate, bool isStereo, const char* path, bool isAsset, int32_t presetIndex) {
+        presetIndex = presetIndex;
+
         if (isAsset) {
             auto asset = openAssetBuffer(path);
             auto assetBuffer = AAsset_getBuffer(asset);
@@ -36,10 +40,10 @@ public:
     void handleMidiEvent(uint8_t status, uint8_t data1, uint8_t data2) override {
         if (status == 0x90) {
             // Note On
-            tsf_note_on(mTsf, 0, data1, data2 / 255.0);
+            tsf_note_on(mTsf, presetIndex, data1, data2 / 255.0);
         } else if (status == 0x80) {
             // Note Off
-            tsf_note_off(mTsf, 0, data1);
+            tsf_note_off(mTsf, presetIndex, data1);
         }
     }
 
