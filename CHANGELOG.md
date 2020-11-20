@@ -12,3 +12,7 @@
 * README is updated to explain how to build a sampler without an SFZ.
 * "pitch" has been replaced with "noteNumber" in all the public APIs.
 * Minor refactoring in sfz_parser.dart
+
+## 0.1.3
+
+* Merged PR to expose presetIndex: https://github.com/mikeperri/flutter_sequencer/pull/2
