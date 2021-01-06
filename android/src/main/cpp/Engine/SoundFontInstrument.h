@@ -12,7 +12,7 @@ public:
     int presetIndex;
 
     SoundFontInstrument(int32_t sampleRate, bool isStereo, const char* path, bool isAsset, int32_t presetIndex) {
-        presetIndex = presetIndex;
+        this->presetIndex = presetIndex;
 
         if (isAsset) {
             auto asset = openAssetBuffer(path);
