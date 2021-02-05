@@ -16,3 +16,7 @@
 ## 0.1.3
 
 * Merged PR to expose presetIndex: https://github.com/mikeperri/flutter_sequencer/pull/2
+
+## 0.1.4
+
+* Fix issue [#8](https://github.com/mikeperri/flutter_sequencer/issues/8)
