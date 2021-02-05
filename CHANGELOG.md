@@ -16,3 +16,8 @@
 ## 0.1.3
 
 * Merged PR to expose presetIndex: https://github.com/mikeperri/flutter_sequencer/pull/2
+
+## 0.1.4
+
+* Merge PR to fix presetIndex assignment: https://github.com/mikeperri/flutter_sequencer/pull/7
+* Fix iOS release mode issue: https://github.com/mikeperri/flutter_sequencer/issues/8
