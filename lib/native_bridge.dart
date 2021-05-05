@@ -129,7 +129,8 @@ class NativeBridge {
     int trackIndex,
     SampleDescriptor sampleDescriptor
   ) {
-    final filenameUtf8Ptr = Utf8.toUtf8(sampleDescriptor.filename);
+    // final filenameUtf8Ptr = Utf8.toUtf8(sampleDescriptor.filename);
+    final filenameUtf8Ptr = sampleDescriptor.filename.toNativeUtf8();
 
     return singleResponseFuture<bool>((port) =>
       nAddSampleToSampler(
@@ -157,7 +158,8 @@ class NativeBridge {
   }
 
   static Future<int> addTrackSf2(String filename, bool isAsset, int patchNumber) {
-    final filenameUtf8Ptr = Utf8.toUtf8(filename);
+    //final filenameUtf8Ptr = Utf8.toUtf8(filename);
+    final filenameUtf8Ptr = filename.toNativeUtf8();
     return singleResponseFuture<int>((port) => nAddTrackSf2(filenameUtf8Ptr, isAsset ? 1 : 0, patchNumber, port.nativePort));
   }
 
@@ -198,7 +200,8 @@ class NativeBridge {
   static int handleEventsNow(int trackIndex, List<SchedulerEvent> events, int sampleRate, double tempo) {
     if (events.isEmpty) return 0;
 
-    final nativeArray = allocate<Uint8>(count: events.length * SCHEDULER_EVENT_SIZE);
+    //final nativeArray = allocate<Uint8>(count: events.length * SCHEDULER_EVENT_SIZE);
+    final nativeArray = calloc<Uint8>(events.length * SCHEDULER_EVENT_SIZE);
     events.asMap().forEach((eventIndex, e) {
       final byteData = e.serializeBytes(sampleRate, tempo, 0);
       for (var byteIndex = 0; byteIndex < byteData.lengthInBytes; byteIndex++) {
@@ -212,7 +215,8 @@ class NativeBridge {
   static int scheduleEvents(int trackIndex, List<SchedulerEvent> events, int sampleRate, double tempo, int frameOffset) {
     if (events.isEmpty) return 0;
 
-    final nativeArray = allocate<Uint8>(count: events.length * SCHEDULER_EVENT_SIZE);
+    //final nativeArray = allocate<Uint8>(count: events.length * SCHEDULER_EVENT_SIZE);
+    final nativeArray = calloc<Uint8>(events.length * SCHEDULER_EVENT_SIZE);
     events.asMap().forEach((eventIndex, e) {
       final byteData = e.serializeBytes(sampleRate, tempo, frameOffset);
       for (var byteIndex = 0; byteIndex < byteData.lengthInBytes; byteIndex++) {
