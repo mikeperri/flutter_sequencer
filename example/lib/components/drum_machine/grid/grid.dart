@@ -7,14 +7,14 @@ import 'cell.dart';
 
 class Grid extends StatelessWidget {
   Grid({
-    Key key,
-    this.getVelocity,
-    this.columnLabels,
-    this.stepCount,
-    this.currentStep,
-    this.onChange,
-    this.onNoteOn,
-    this.onNoteOff,
+    Key? key,
+    required this.getVelocity,
+    required this.columnLabels,
+    required this.stepCount,
+    required this.currentStep,
+    required this.onChange,
+    required this.onNoteOn,
+    required this.onNoteOff,
   }) : super(key: key);
 
   final Function(int step, int col) getVelocity;
@@ -37,7 +37,7 @@ class Grid extends StatelessWidget {
           shrinkWrap: true,
           itemCount: stepCount,
           itemBuilder: (BuildContext context, int step) {
-            final cellWidgets = new List<Widget>();
+            final List<Widget> cellWidgets = [];
 
             for (var col = 0; col < columnsCount; col++) {
               final velocity = getVelocity(step, col);

@@ -19,25 +19,25 @@ abstract class Instrument  {
 class SamplerInstrument extends Instrument {
   final List<SampleDescriptor> sampleDescriptors;
 
-  SamplerInstrument({ String id, this.sampleDescriptors }) : super(id, false);
+  SamplerInstrument({ required String id, required this.sampleDescriptors }) : super(id, false);
 }
 
 /// Describes an instrument in SFZ format. The SFZ will be parsed and used to
 /// create a SamplerInstrument.
 class SfzInstrument extends Instrument {
-  SfzInstrument({ String path, bool isAsset })
+  SfzInstrument({ required String path, required bool isAsset })
     : super(path, isAsset);
 }
 
 /// Describes an instrument in SF2 format. Will be played by the SoundFont
 /// player for the current platform.
 class Sf2Instrument extends Instrument {
-  Sf2Instrument({ String path, bool isAsset, int presetIndex = DEFAULT_PATCH_NUMBER })
+  Sf2Instrument({ required String path, required bool isAsset, int presetIndex = DEFAULT_PATCH_NUMBER })
     : super(path, isAsset, presetIndex: presetIndex);
 }
 
 /// Describes an AudioUnit instrument (Apple platforms only.)
 class AudioUnitInstrument extends Instrument {
-  AudioUnitInstrument({ String manufacturerName, String componentName })
-    : super('${manufacturerName}.${componentName}', false);
+  AudioUnitInstrument({ required String manufacturerName, required String componentName })
+    : super('$manufacturerName.$componentName', false);
 }

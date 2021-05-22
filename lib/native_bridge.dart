@@ -3,10 +3,10 @@ import 'dart:ffi';
 import 'dart:io';
 import 'package:ffi/ffi.dart';
 import 'package:flutter/services.dart';
-import 'package:isolate/ports.dart';
 
 import 'models/events.dart';
 import 'models/sample_descriptor.dart';
+import 'utils/isolate.dart';
 
 final DynamicLibrary nativeLib = Platform.isAndroid
   ? DynamicLibrary.open('libflutter_sequencer.so')
@@ -34,7 +34,7 @@ final nAddTrackSampler = nativeLib.lookupFunction<
 
 final nAddSampleToSampler = nativeLib.lookupFunction<
   Void Function(Int32, Pointer<Utf8>, Int8, Int32, Float, Int32, Int32, Int32, Int32, Int8, Float, Float, Float, Float, Int64),
-  void Function(int, Pointer<Utf8>, int, int, double, int, int, int, int, int, double, double, double, double, int)>('add_sample_to_sampler');
+  void Function(int, Pointer<Utf8>, int, int?, double?, int?, int?, int?, int?, int, double?, double?, double?, double?, int)>('add_sample_to_sampler');
 
 final nBuildKeyMap = nativeLib.lookupFunction<
   Void Function(Int32, Int64),
@@ -46,11 +46,11 @@ final nAddTrackSf2 = nativeLib.lookupFunction<
 
 final nRemoveTrack = nativeLib.lookupFunction<
   Void Function(Int32),
-  void Function(int)>('remove_track');
+  void Function(int?)>('remove_track');
 
 final nResetTrack = nativeLib.lookupFunction<
   Void Function(Int32),
-  void Function(int)>('reset_track');
+  void Function(int?)>('reset_track');
 
 final nGetPosition = nativeLib.lookupFunction<
   Uint32 Function(),
@@ -58,7 +58,7 @@ final nGetPosition = nativeLib.lookupFunction<
 
 final nGetTrackVolume = nativeLib.lookupFunction<
   Float Function(Int32),
-  double Function(int)>('get_track_volume');
+  double Function(int?)>('get_track_volume');
 
 final nGetLastRenderTimeUs = nativeLib.lookupFunction<
   Uint64 Function(),
@@ -66,19 +66,19 @@ final nGetLastRenderTimeUs = nativeLib.lookupFunction<
 
 final nGetBufferAvailableCount = nativeLib.lookupFunction<
   Uint32 Function(Int32),
-  int Function(int)>('get_buffer_available_count');
+  int Function(int?)>('get_buffer_available_count');
 
 final nHandleEventsNow = nativeLib.lookupFunction<
-  Uint32 Function(Int32, Pointer<Uint8>, Uint32),
-  int Function(int, Pointer<Uint8>, int)>('handle_events_now');
+  Uint32 Function(Int32?, Pointer<Uint8>?, Uint32),
+  int Function(int?, Pointer<Uint8>?, int)>('handle_events_now');
 
 final nScheduleEvents = nativeLib.lookupFunction<
-  Uint32 Function(Int32, Pointer<Uint8>, Uint32),
-  int Function(int, Pointer<Uint8>, int)>('schedule_events');
+  Uint32 Function(Int32?, Pointer<Uint8>?, Uint32),
+  int Function(int?, Pointer<Uint8>?, int)>('schedule_events');
 
 final nClearEvents = nativeLib.lookupFunction<
   Void Function(Int32, Uint32),
-  void Function(int, int)>('clear_events');
+  void Function(int?, int?)>('clear_events');
 
 final nPlay = nativeLib.lookupFunction<
   Void Function(),
@@ -103,20 +103,20 @@ class NativeBridge {
     return singleResponseFuture<int>((port) => nSetupEngine(port.nativePort));
   }
 
-  static Future<List<String>> listAssetDir(String assetDir, String extension) async {
+  static Future<List<String>?> listAssetDir(String assetDir, String extension) async {
     final args = <String, dynamic>{
       'assetDir': assetDir,
       'extension': extension
     };
     final result = await _channel.invokeMethod('listAssetDir', args);
-    final List<String> paths = result.cast<String>();
+    final List<String>? paths = result.cast<String>();
 
     return paths;
   }
 
-  static Future<List<String>> listAudioUnits() async {
+  static Future<List<String>?> listAudioUnits() async {
     final result = await _channel.invokeMethod('listAudioUnits');
-    final List<String> audioUnitIds = result.cast<String>();
+    final List<String>? audioUnitIds = result.cast<String>();
 
     return audioUnitIds;
   }
@@ -129,7 +129,7 @@ class NativeBridge {
     int trackIndex,
     SampleDescriptor sampleDescriptor
   ) {
-    final filenameUtf8Ptr = Utf8.toUtf8(sampleDescriptor.filename);
+    final filenameUtf8Ptr = sampleDescriptor.filename.toNativeUtf8();
 
     return singleResponseFuture<bool>((port) =>
       nAddSampleToSampler(
@@ -157,11 +157,11 @@ class NativeBridge {
   }
 
   static Future<int> addTrackSf2(String filename, bool isAsset, int patchNumber) {
-    final filenameUtf8Ptr = Utf8.toUtf8(filename);
+    final filenameUtf8Ptr = filename.toNativeUtf8();
     return singleResponseFuture<int>((port) => nAddTrackSf2(filenameUtf8Ptr, isAsset ? 1 : 0, patchNumber, port.nativePort));
   }
 
-  static Future<int> addTrackAudioUnit(String id) async {
+  static Future<int?> addTrackAudioUnit(String id) async {
     if (Platform.isAndroid) return -1;
 
     final args = <String, dynamic>{
@@ -198,11 +198,11 @@ class NativeBridge {
   static int handleEventsNow(int trackIndex, List<SchedulerEvent> events, int sampleRate, double tempo) {
     if (events.isEmpty) return 0;
 
-    final nativeArray = allocate<Uint8>(count: events.length * SCHEDULER_EVENT_SIZE);
+    final Pointer<Uint8>? nativeArray = calloc<Uint8>(events.length * SCHEDULER_EVENT_SIZE);
     events.asMap().forEach((eventIndex, e) {
       final byteData = e.serializeBytes(sampleRate, tempo, 0);
       for (var byteIndex = 0; byteIndex < byteData.lengthInBytes; byteIndex++) {
-        nativeArray[eventIndex * SCHEDULER_EVENT_SIZE + byteIndex] = byteData.getUint8(byteIndex);
+        nativeArray![eventIndex * SCHEDULER_EVENT_SIZE + byteIndex] = byteData.getUint8(byteIndex);
       }
     });
 
@@ -212,11 +212,11 @@ class NativeBridge {
   static int scheduleEvents(int trackIndex, List<SchedulerEvent> events, int sampleRate, double tempo, int frameOffset) {
     if (events.isEmpty) return 0;
 
-    final nativeArray = allocate<Uint8>(count: events.length * SCHEDULER_EVENT_SIZE);
+    final Pointer<Uint8>? nativeArray = calloc<Uint8>(events.length * SCHEDULER_EVENT_SIZE);
     events.asMap().forEach((eventIndex, e) {
       final byteData = e.serializeBytes(sampleRate, tempo, frameOffset);
       for (var byteIndex = 0; byteIndex < byteData.lengthInBytes; byteIndex++) {
-        nativeArray[eventIndex * SCHEDULER_EVENT_SIZE + byteIndex] = byteData.getUint8(byteIndex);
+        nativeArray![eventIndex * SCHEDULER_EVENT_SIZE + byteIndex] = byteData.getUint8(byteIndex);
       }
     });
 

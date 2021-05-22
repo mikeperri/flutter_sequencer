@@ -4,8 +4,8 @@ import 'package:flutter/widgets.dart';
 
 class TempoSelector extends StatefulWidget {
   TempoSelector({
-    this.selectedTempo,
-    this.handleChange,
+    required this.selectedTempo,
+    required this.handleChange,
   });
 
   final double selectedTempo;
@@ -16,7 +16,7 @@ class TempoSelector extends StatefulWidget {
 }
 
 class _TempoSelectorState extends State<TempoSelector> {
-  TextEditingController controller;
+  late TextEditingController controller;
 
   @override
   void didUpdateWidget(TempoSelector oldWidget) {

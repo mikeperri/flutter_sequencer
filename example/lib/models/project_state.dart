@@ -4,12 +4,12 @@ import 'step_sequencer_state.dart';
 
 class ProjectState {
   ProjectState({
-    this.stepCount,
-    this.tempo,
-    this.isLooping,
-    this.drumState,
-    this.pianoState,
-    this.bassState,
+    required this.stepCount,
+    required this.tempo,
+    required this.isLooping,
+    required this.drumState,
+    required this.pianoState,
+    required this.bassState,
   });
 
   final int stepCount;

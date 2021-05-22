@@ -21,9 +21,9 @@ class GlobalState {
 
   var keepEngineRunning = false;
   final sequenceIdMap = <int, Sequence>{};
-  int sampleRate;
+  int? sampleRate;
   var isEngineReady = false;
-  Timer _topOffTimer;
+  Timer? _topOffTimer;
   int lastTickInBuffer = 0;
   final onEngineReadyCallbacks = <Function()>[];
 
@@ -68,9 +68,9 @@ class GlobalState {
   }
 
   /// {@macro flutter_sequencer_library_private}
-  void playSequence(int id) {
+  void playSequence(int? id) {
     if (!sequenceIdMap.containsKey(id)) return;
-    final sequence = sequenceIdMap[id];
+    final sequence = sequenceIdMap[id!]!;
     if (sequence.isPlaying || sequence.getIsOver()) return;
 
     final shouldPlayEngine = !_getIsPlaying();
@@ -86,9 +86,9 @@ class GlobalState {
   }
 
   /// {@macro flutter_sequencer_library_private}
-  void pauseSequence(int id) {
+  void pauseSequence(int? id) {
     if (!sequenceIdMap.containsKey(id)) return;
-    final sequence = sequenceIdMap[id];
+    final sequence = sequenceIdMap[id!]!;
     if (!sequence.isPlaying) return;
     final shouldPauseEngine = _getIsPlaying();
 
@@ -108,13 +108,13 @@ class GlobalState {
   /// {@macro flutter_sequencer_library_private}
   int usToFrames(int us) {
     if (sampleRate == null) return 0;
-    return (us * SECONDS_PER_US * sampleRate).round();
+    return (us * SECONDS_PER_US * sampleRate!).round();
   }
 
   /// {@macro flutter_sequencer_library_private}
   int framesToUs(int frames) {
     if (sampleRate == null) return 0;
-    return (frames / (SECONDS_PER_US * sampleRate)).round();
+    return (frames / (SECONDS_PER_US * sampleRate!)).round();
   }
 
   void _setupEngine() async {
@@ -135,7 +135,7 @@ class GlobalState {
     // All sequences were paused, play engine
     if (!keepEngineRunning) NativeBridge.play();
 
-    if (_topOffTimer != null) _topOffTimer.cancel();
+    if (_topOffTimer != null) _topOffTimer!.cancel();
     _topOffTimer = Timer.periodic(Duration(milliseconds: 1000), (_) {
       _topOffAllBuffers();
 
@@ -146,7 +146,7 @@ class GlobalState {
   void _pauseEngine() {
     if (!keepEngineRunning) NativeBridge.pause();
 
-    if (_topOffTimer != null) _topOffTimer.cancel();
+    if (_topOffTimer != null) _topOffTimer!.cancel();
   }
 
   /// Gets all tracks in all sequences.
@@ -169,7 +169,7 @@ class GlobalState {
     });
   }
 
-  void _syncAllBuffers([int absoluteStartFrame, int maxEventsToSync = BUFFER_SIZE]) {
+  void _syncAllBuffers([int? absoluteStartFrame, int maxEventsToSync = BUFFER_SIZE]) {
     _getAllTracks().forEach((track) {
       track.syncBuffer(absoluteStartFrame, maxEventsToSync);
     });

@@ -3,11 +3,11 @@ import 'package:flutter/widgets.dart';
 
 class LabelRow extends StatelessWidget {
   LabelRow({
-    Key key,
-    this.columnLabels,
-    this.cellSize,
-    this.onNoteOn,
-    this.onNoteOff,
+    Key? key,
+    required this.columnLabels,
+    required this.cellSize,
+    required this.onNoteOn,
+    required this.onNoteOff,
   }) : super(key: key);
 
   final List<String> columnLabels;
@@ -18,7 +18,7 @@ class LabelRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Build a row of label widgets
-    final labelWidgets = new List<Widget>();
+    final List<Widget> labelWidgets = [];
     for (var col = 0; col < columnLabels.length; col++) {
       final labelWidget =
       Listener(

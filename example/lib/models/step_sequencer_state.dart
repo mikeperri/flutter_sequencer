@@ -13,12 +13,7 @@ class StepSequencerState {
   }
 
   double getVelocity(int step, int noteNumber) {
-    if (stepNoteNumberVelocityMap[step] == null
-      || stepNoteNumberVelocityMap[step][noteNumber] == null) {
-      return 0;
-    } else {
-      return stepNoteNumberVelocityMap[step][noteNumber];
-    }
+    return stepNoteNumberVelocityMap[step]?[noteNumber] ?? 0;
   }
 
   void iterateEvents(Function(int step, int noteNumber, double velocity) callback) {

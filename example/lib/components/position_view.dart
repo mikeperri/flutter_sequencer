@@ -2,7 +2,7 @@ import 'package:flutter/widgets.dart';
 
 class PositionView extends StatelessWidget {
   PositionView({
-    this.position
+    required this.position
   });
 
   final double position;

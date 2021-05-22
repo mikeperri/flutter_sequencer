@@ -9,16 +9,16 @@ import 'grid/grid.dart';
 
 class DrumMachineWidget extends StatefulWidget {
   const DrumMachineWidget({
-    Key key,
-    @required this.track,
-    @required this.stepCount,
-    @required this.currentStep,
-    @required this.rowLabels,
-    @required this.columnPitches,
-    @required this.volume,
-    @required this.stepSequencerState,
-    @required this.handleVolumeChange,
-    @required this.handleVelocitiesChange,
+    Key? key,
+    required this.track,
+    required this.stepCount,
+    required this.currentStep,
+    required this.rowLabels,
+    required this.columnPitches,
+    required this.volume,
+    required this.stepSequencerState,
+    required this.handleVolumeChange,
+    required this.handleVelocitiesChange,
   }) : super(key: key);
 
   final Track track;
@@ -27,7 +27,7 @@ class DrumMachineWidget extends StatefulWidget {
   final List<String> rowLabels;
   final List<int> columnPitches;
   final double volume;
-  final StepSequencerState stepSequencerState;
+  final StepSequencerState? stepSequencerState;
   final Function(double) handleVolumeChange;
   final Function(int, int, int, double) handleVelocitiesChange;
 
@@ -36,15 +36,15 @@ class DrumMachineWidget extends StatefulWidget {
 }
 
 class _DrumMachineWidgetState extends State<DrumMachineWidget> with SingleTickerProviderStateMixin {
-  Ticker ticker;
+  Ticker? ticker;
 
   @override
   void dispose() {
     super.dispose();
   }
 
-  double getVelocity(int step, int col) {
-    return widget.stepSequencerState.getVelocity(step, widget.columnPitches[col]);
+  double? getVelocity(int step, int col) {
+    return widget.stepSequencerState!.getVelocity(step, widget.columnPitches[col]);
   }
 
   void handleVelocityChange(int col, int step, double velocity) {

@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter_sequencer/sfz_parser.dart';
 
 import 'constants.dart';
@@ -23,8 +22,8 @@ class Sequence {
   static final GlobalState globalState = GlobalState();
 
   Sequence({
-    @required this.tempo,
-    @required this.endBeat,
+    required this.tempo,
+    required this.endBeat,
   }) {
     id = globalState.registerSequence(this);
   }
@@ -37,7 +36,7 @@ class Sequence {
   }
   
   final _tracks = <int, Track>{};
-  int id;
+  late int id;
 
   // Sequencer state
   bool isPlaying = false;
@@ -63,6 +62,7 @@ class Sequence {
 
       globalState.onEngineReady(() async {
         final tracks = await _createTracks(instruments);
+
         completer.complete(tracks);
       });
 
@@ -336,8 +336,8 @@ class Sequence {
   }
 
   /// Creates a track in the underlying sequencer engine.
-  Future<Track> _createTrack(Instrument instrument) async {
-    int id;
+  Future<Track?> _createTrack(Instrument instrument) async {
+    int? id;
 
     if (instrument is Sf2Instrument) {
       id = await NativeBridge.addTrackSf2(instrument.idOrPath, instrument.isAsset, instrument.presetIndex);
@@ -360,7 +360,7 @@ class Sequence {
     final track =
       Track(
         sequence: this,
-        id: id,
+        id: id!,
         instrument: instrument,
       );
 
@@ -370,8 +370,10 @@ class Sequence {
   }
 
   Future<List<Track>> _createTracks(List<Instrument> instruments) async {
-    return await Future.wait(
-      instruments.map((instrument) => _createTrack(instrument)));
+    final tracks = await Future.wait(instruments.map((instrument) => _createTrack(instrument)));
+    final nonNullTracks = tracks.whereType<Track>().toList();
+
+    return nonNullTracks;
   }
 
   /// Creates a sampler track and adds the sample descriptors.

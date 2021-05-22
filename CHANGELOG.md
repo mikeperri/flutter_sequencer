@@ -21,3 +21,8 @@
 
 * Merge PR to fix presetIndex assignment: https://github.com/mikeperri/flutter_sequencer/pull/7
 * Fix iOS release mode issue: https://github.com/mikeperri/flutter_sequencer/issues/8
+
+## 0.2.0
+
+* Migrate to null safety
+* Upgrade lint rules

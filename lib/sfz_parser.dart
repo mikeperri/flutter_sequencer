@@ -30,21 +30,21 @@ class SfzParseResult {
   List<SampleDescriptor> sampleDescriptors;
   List<BaseSfzWarning> warnings;
 
-  SfzParseResult({ this.sampleDescriptors, this.warnings });
+  SfzParseResult({ required this.sampleDescriptors, required this.warnings });
 }
 
 class SfzParserState {
-  int noteNumber;
-  int minimumNoteNumber;
-  int maximumNoteNumber;
-  int minimumVelocity;
-  int maximumVelocity;
-  String samplePath;
-  String loopMode;
-  double loopStartPoint;
-  double loopEndPoint;
+  int? noteNumber;
+  int? minimumNoteNumber;
+  int? maximumNoteNumber;
+  int? minimumVelocity;
+  int? maximumVelocity;
+  String? samplePath;
+  String? loopMode;
+  double? loopStartPoint;
+  double? loopEndPoint;
 
-  resetForGroup() {
+  void resetForGroup() {
     noteNumber = null;
     minimumNoteNumber = null;
     maximumNoteNumber = null;
@@ -55,7 +55,7 @@ class SfzParserState {
     loopEndPoint = null;
   }
 
-  resetForRegion() {
+  void resetForRegion() {
     samplePath = null;
   }
 }
@@ -148,7 +148,7 @@ Future<SfzParseResult> parseSfz(String sfzFilename, bool isAsset) async {
       }
 
       final sampleAbsolutePath =
-        samplesBaseUrl.resolve(state.samplePath).path.toString();
+        samplesBaseUrl.resolve(state.samplePath!).path.toString();
 
       sampleDescriptors.add(
         SampleDescriptor(

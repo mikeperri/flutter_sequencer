@@ -4,14 +4,14 @@ import 'package:flutter_sequencer/track.dart';
 
 class TrackSelector extends StatelessWidget {
   TrackSelector({
-    this.selectedTrack,
-    this.tracks,
-    this.handleChange,
+    required this.selectedTrack,
+    required this.tracks,
+    required this.handleChange,
   });
 
-  final Track selectedTrack;
+  final Track? selectedTrack;
   final List<Track> tracks;
-  final Function(Track nextTrack) handleChange;
+  final void Function(Track? nextTrack) handleChange;
 
   @override
   Widget build(BuildContext context) {

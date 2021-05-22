@@ -15,38 +15,38 @@ class Track {
   final events = <SchedulerEvent>[];
   int lastFrameSynced = 0;
 
-  Track({ this.sequence, this.id, this.instrument });
+  Track({ required this.sequence, required this.id, required this.instrument });
 
   /// Handles a Note On event on this track immediately.
   /// The event will not be added to this track's events.
-  void startNoteNow({ int noteNumber, double velocity }) {
+  void startNoteNow({ required int noteNumber, required double velocity }) {
     final nextBeat = sequence.getBeat();
     final event = MidiEvent.ofNoteOn(beat: nextBeat, noteNumber: noteNumber, velocity: _velocityToMidi(velocity));
 
-    NativeBridge.handleEventsNow(id, [event], Sequence.globalState.sampleRate, sequence.tempo);
+    NativeBridge.handleEventsNow(id, [event], Sequence.globalState.sampleRate!, sequence.tempo);
   }
 
   /// Handles a Note Off event on this track immediately.
   /// The event will not be added to this track's events.
-  void stopNoteNow({ int noteNumber }) {
+  void stopNoteNow({ required int noteNumber }) {
     final nextBeat = sequence.getBeat();
     final event = MidiEvent.ofNoteOff(beat: nextBeat, noteNumber: noteNumber);
 
-    NativeBridge.handleEventsNow(id, [event], Sequence.globalState.sampleRate, sequence.tempo);
+    NativeBridge.handleEventsNow(id, [event], Sequence.globalState.sampleRate!, sequence.tempo);
   }
 
   /// Handles a Volume Change event on this track immediately.
   /// The event will not be added to this track's events.
-  void changeVolumeNow({ double volume }) {
+  void changeVolumeNow({ required double volume }) {
     final nextBeat = sequence.getBeat();
     final event = VolumeEvent(beat: nextBeat, volume: volume);
 
-    NativeBridge.handleEventsNow(id, [event], Sequence.globalState.sampleRate, sequence.tempo);
+    NativeBridge.handleEventsNow(id, [event], Sequence.globalState.sampleRate!, sequence.tempo);
   }
 
   /// Adds a Note On and Note Off event to this track.
   /// This does not sync the events to the backend.
-  void addNote({ int noteNumber, double velocity, double startBeat, double durationBeats }) {
+  void addNote({ required int noteNumber, required double velocity, required double startBeat, required double durationBeats }) {
     assert(velocity > 0 && velocity <= 1);
 
     final noteOnEvent =
@@ -68,7 +68,7 @@ class Track {
 
   /// Adds a Volume event to this track.
   /// This does not sync the events to the backend.
-  void addVolumeChange({ double volume, double beat }) {
+  void addVolumeChange({ required double volume, required double beat }) {
     final volumeChangeEvent =
       VolumeEvent(beat: beat, volume: volume);
 
@@ -88,7 +88,7 @@ class Track {
 
   /// Syncs events to the backend. This should be called after making changes to
   /// track events to ensure that the changes are synced immediately.
-  void syncBuffer([int absoluteStartFrame, int maxEventsToSync = BUFFER_SIZE]) {
+  void syncBuffer([int? absoluteStartFrame, int maxEventsToSync = BUFFER_SIZE]) {
     final position = NativeBridge.getPosition();
 
     if (absoluteStartFrame == null) {
@@ -185,7 +185,7 @@ class Track {
 
   /// Schedules this track's events that start on or after startBeat and end
   /// on or before endBeat. Adds frameOffset to every scheduled event.
-  int _scheduleEventsInRange(int maxEventsToSync, int startFrame, int endFrame, int frameOffset) {
+  int _scheduleEventsInRange(int maxEventsToSync, int startFrame, int? endFrame, int frameOffset) {
     final eventsToSync = <SchedulerEvent>[];
 
     for (var eventIndex = 0; eventIndex < events.length; eventIndex++) {
@@ -204,7 +204,7 @@ class Track {
       NativeBridge.scheduleEvents(
         id,
         eventsToSync,
-        Sequence.globalState.sampleRate,
+        Sequence.globalState.sampleRate!,
         sequence.tempo,
         sequence.engineStartFrame + frameOffset
       );

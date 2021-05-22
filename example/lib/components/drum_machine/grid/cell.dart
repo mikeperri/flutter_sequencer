@@ -4,11 +4,11 @@ import 'package:flutter_sequencer_example/constants.dart';
 
 class Cell extends StatelessWidget {
   Cell({
-    Key key,
-    this.size,
-    this.velocity,
-    this.isCurrentStep,
-    this.onChange,
+    Key? key,
+    required this.size,
+    required this.velocity,
+    required this.isCurrentStep,
+    required this.onChange,
   }) : super(key: key);
 
   final double size;

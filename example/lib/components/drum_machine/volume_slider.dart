@@ -3,9 +3,9 @@ import 'package:flutter/widgets.dart';
 
 class VolumeSlider extends StatelessWidget {
   VolumeSlider({
-    Key key,
-    this.value,
-    this.onChange,
+    Key? key,
+    required this.value,
+    required this.onChange,
   });
 
   final double value;

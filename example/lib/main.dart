@@ -28,11 +28,11 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
   final sequence = Sequence(tempo: INITIAL_TEMPO, endBeat: INITIAL_STEP_COUNT.toDouble());
-  Map<int, StepSequencerState> trackStepSequencerStates = {};
+  Map<int, StepSequencerState?> trackStepSequencerStates = {};
   List<Track> tracks = [];
   Map<int, double> trackVolumes = {};
-  Track selectedTrack;
-  Ticker ticker;
+  Track? selectedTrack;
+  late Ticker ticker;
   double tempo = INITIAL_TEMPO;
   int stepCount = INITIAL_STEP_COUNT;
   double position = 0.0;
@@ -138,27 +138,29 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
     sequence.setTempo(nextTempo);
   }
 
-  handleTrackChange(Track nextTrack) {
+  handleTrackChange(Track? nextTrack) {
     setState(() {
       selectedTrack = nextTrack;
     });
   }
 
   handleVolumeChange(double nextVolume) {
-    selectedTrack.changeVolumeNow(volume: nextVolume);
+    if (selectedTrack != null) {
+      selectedTrack!.changeVolumeNow(volume: nextVolume);
+    }
   }
 
   handleVelocitiesChange(int trackId, int step, int noteNumber, double velocity) {
     final track = tracks.firstWhere((track) => track.id == trackId);
 
-    trackStepSequencerStates[trackId].setVelocity(step, noteNumber, velocity);
+    trackStepSequencerStates[trackId]!.setVelocity(step, noteNumber, velocity);
 
     syncTrack(track);
   }
 
   syncTrack(track) {
     track.clearEvents();
-    trackStepSequencerStates[track.id].iterateEvents((step, noteNumber, velocity) {
+    trackStepSequencerStates[track.id]!.iterateEvents((step, noteNumber, velocity) {
       if (step < stepCount) {
         track.addNote(
           noteNumber: noteNumber,
@@ -244,13 +246,13 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
             ]
           ),
           DrumMachineWidget(
-            track: selectedTrack,
+            track: selectedTrack!,
             stepCount: stepCount,
             currentStep: position.floor(),
             rowLabels: isDrumTrackSelected ? ROW_LABELS_DRUMS : ROW_LABELS_PIANO,
             columnPitches: isDrumTrackSelected ? ROW_PITCHES_DRUMS : ROW_PITCHES_PIANO,
-            volume: trackVolumes[selectedTrack.id] ?? 0.0,
-            stepSequencerState: trackStepSequencerStates[selectedTrack.id],
+            volume: trackVolumes[selectedTrack!.id] ?? 0.0,
+            stepSequencerState: trackStepSequencerStates[selectedTrack!.id],
             handleVolumeChange: handleVolumeChange,
             handleVelocitiesChange: handleVelocitiesChange,
           ),
