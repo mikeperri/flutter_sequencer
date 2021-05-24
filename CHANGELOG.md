@@ -26,3 +26,7 @@
 
 * Migrate to null safety
 * Upgrade lint rules
+
+## 0.2.1
+
+* Change AudioKit branch name

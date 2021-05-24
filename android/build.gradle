@@ -66,7 +66,7 @@ void cloneThirdPartyRepo(String name, String uri, String branch) {
 }
 
 task cloneThirdPartyRepos {
-    cloneThirdPartyRepo('AudioKit', 'https://github.com/AudioKit/AudioKit', 'v4-master')
+    cloneThirdPartyRepo('AudioKit', 'https://github.com/AudioKit/AudioKit', 'v4')
     cloneThirdPartyRepo('libnyquist', 'https://github.com/mikeperri/libnyquist.git', 'fix-wavpack-int-lossy')
     cloneThirdPartyRepo('oboe', 'https://github.com/google/oboe', '1.4-stable')
     cloneThirdPartyRepo('TinySoundFont', 'https://github.com/schellingb/TinySoundFont.git', 'master')
