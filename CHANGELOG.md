@@ -30,3 +30,9 @@
 ## 0.2.1
 
 * Change AudioKit branch name
+
+## 0.3.0
+
+* Send MIDI note off for all notes when a track is stopped
+* Prevent rounding errors in getIsOver() by using frames instead of beats
+* Add Track.addNoteOn and .addNoteOff methods
