@@ -232,7 +232,7 @@ class Sequence {
 
   /// Returns true if the sequence is at its end beat.
   bool getIsOver() {
-    return getBeat(false) == endBeat;
+    return _getFrame(true) == beatToFrames(endBeat);
   }
 
   /// Gets the current beat. Returns a value based on the number of frames
