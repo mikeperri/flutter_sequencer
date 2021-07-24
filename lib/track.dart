@@ -47,22 +47,42 @@ class Track {
   /// Adds a Note On and Note Off event to this track.
   /// This does not sync the events to the backend.
   void addNote({ required int noteNumber, required double velocity, required double startBeat, required double durationBeats }) {
+    addNoteOn(
+      noteNumber: noteNumber,
+      velocity: velocity,
+      beat: startBeat,
+    );
+
+    addNoteOff(
+      noteNumber: noteNumber,
+      beat: startBeat + durationBeats,
+    );
+  }
+
+  /// Adds a Note On event to this track.
+  /// This does not sync the events to the backend.
+  void addNoteOn({ required int noteNumber, required double velocity, required double beat }) {
     assert(velocity > 0 && velocity <= 1);
 
     final noteOnEvent =
       MidiEvent.ofNoteOn(
-        beat: startBeat,
+        beat: beat,
         noteNumber: noteNumber,
         velocity: _velocityToMidi(velocity),
       );
 
-    final noteOffEvent =
-      MidiEvent.ofNoteOff(
-        beat: startBeat + durationBeats,
-        noteNumber: noteNumber,
-      );
-
     _addEvent(noteOnEvent);
+  }
+
+  /// Adds a Note On and Note Off event to this track.
+  /// This does not sync the events to the backend.
+  void addNoteOff({ required int noteNumber, required double beat }) {
+    final noteOffEvent =
+    MidiEvent.ofNoteOff(
+      beat: beat,
+      noteNumber: noteNumber,
+    );
+
     _addEvent(noteOffEvent);
   }
 
