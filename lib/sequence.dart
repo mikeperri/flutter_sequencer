@@ -115,6 +115,11 @@ class Sequence {
   void stop() {
     pause();
     setBeat(0.0);
+    _tracks.values.forEach((track) {
+      List.generate(128, (noteNumber) {
+        track.stopNoteNow(noteNumber: noteNumber);
+      });
+    });
   }
 
   /// Sets the tempo.
