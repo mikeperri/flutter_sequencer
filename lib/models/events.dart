@@ -62,6 +62,7 @@ class MidiEvent extends SchedulerEvent {
     required int noteNumber,
     required int velocity,
   }) {
+    if (noteNumber > 127 || noteNumber < 0) throw 'noteNumber must be in range 0-127';
     if (velocity > 127 || velocity < 0) throw 'Velocity must be in range 0-127';
 
     return MidiEvent(
@@ -76,11 +77,47 @@ class MidiEvent extends SchedulerEvent {
     required double beat,
     required int noteNumber,
   }) {
+    if (noteNumber > 127 || noteNumber < 0) throw 'noteNumber must be in range 0-127';
+
     return MidiEvent(
       beat: beat,
       midiStatus: 128,
       midiData1: noteNumber,
       midiData2: 0,
+    );
+  }
+
+  static MidiEvent cc({
+    required double beat,
+    required int ccNumber,
+    required int ccValue,
+  }) {
+    if (ccNumber > 127 || ccNumber < 0) throw 'ccNumber must be in range 0-127';
+    if (ccValue > 127 || ccValue < 0) throw 'ccValue must be in range 0-127';
+
+    return MidiEvent(
+      beat: beat,
+      midiStatus: 0xB0,
+      midiData1: ccNumber,
+      midiData2: ccValue,
+    );
+  }
+
+  static MidiEvent pitchBend({
+    required double beat,
+    required double value,
+  }) {
+    if (value > 1 || value < -1) throw 'value must be in range -1 to 1';
+
+    final intValue = (((value + 1) / 2) * 16383).round();
+    final midiData1 = intValue >> 7;
+    final midiData2 = intValue & 0x7F;
+
+    return MidiEvent(
+      beat: beat,
+      midiStatus: 0xE0,
+      midiData1: midiData1,
+      midiData2: midiData2,
     );
   }
 }

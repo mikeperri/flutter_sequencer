@@ -1,5 +1,6 @@
 /*
  * Adapted from https://github.com/google/oboe/blob/master/samples/shared/Mixer.h
+ * This is used on Android only, on iOS we use the built in mixer
  */
 
 #ifndef MIXER_H
@@ -7,8 +8,8 @@
 
 #include <array>
 #include <optional>
-#include <BaseScheduler.h>
-#include "./IRenderableAudio.h"
+#include "BaseScheduler.h"
+#include "IRenderableAudio.h"
 #include "../Utils/OptionArray.h"
 #include "../Utils/Logging.h"
 
@@ -140,6 +141,8 @@ public:
         if (maybeTrackInfo.has_value()) {
             TrackInfo nextTrackInfo = maybeTrackInfo.value();
             return nextTrackInfo.level;
+        } else {
+            return 0.0;
         }
     }
 

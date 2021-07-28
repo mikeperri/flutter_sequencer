@@ -1,3 +1,5 @@
+import org.eclipse.jgit.api.Git
+
 group 'com.michaeljperri.flutter_sequencer'
 version '1.0-SNAPSHOT'
 
@@ -5,23 +7,19 @@ buildscript {
     ext.kotlin_version = '1.5.21'
     repositories {
         google()
-        jcenter()
-        maven {
-            url "http://download.eclipse.org/jgit/maven"
-        }
+        mavenCentral()
     }
 
     dependencies {
         classpath 'com.android.tools.build:gradle:4.1.2'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        classpath "org.eclipse.jgit:org.eclipse.jgit:5.5.+"
+        classpath "org.eclipse.jgit:org.eclipse.jgit:5.12.0+"
     }
 }
 
 rootProject.allprojects {
     repositories {
         google()
-        jcenter()
     }
 }
 
@@ -39,13 +37,14 @@ android {
 
         externalNativeBuild {
             cmake {
-                cppFlags "-std=c++17"
+                cppFlags '-std=c++17', '-frelaxed-template-template-args'
             }
         }
     }
     lintOptions {
         disable 'InvalidPackage'
     }
+    ndkVersion "22.1.7171670"
     externalNativeBuild {
         cmake {
             version "3.18.1"
@@ -57,22 +56,11 @@ android {
 void cloneThirdPartyRepo(String name, String uri, String commit) {
     def dirPath = "$projectDir/third_party/$name"
     def dir = new File(dirPath)
-    org.eclipse.jgit.api.Git repo;
-
-    if (dir.exists()) {
-        repo = org.eclipse.jgit.api.Git.open(dir)
-        def status = repo.status().call();
-        def head = repo.log().setMaxCount(1).call().iterator().next();
-
-        if (!status.clean || head.name != commit) {
-            dir.deleteDir();
-        }
-    }
 
     if (!dir.exists()) {
         dir.mkdirs()
-        repo =
-            org.eclipse.jgit.api.Git.cloneRepository()
+        def repo =
+            Git.cloneRepository()
                 .setDirectory(dir)
                 .setURI(uri)
                 .setRemote('origin')
@@ -80,17 +68,15 @@ void cloneThirdPartyRepo(String name, String uri, String commit) {
                 .call()
 
         repo.checkout().setName(commit).call()
+        repo.submoduleUpdate()
+        repo.submoduleInit()
     }
-
-    repo.submoduleUpdate()
-    repo.submoduleInit()
 }
 
 task cloneThirdPartyRepos {
-    cloneThirdPartyRepo('AudioKit', 'https://github.com/AudioKit/AudioKit', 'a3a1405c906262588e27c445a7b1f4ad7e3eade3')
-    cloneThirdPartyRepo('libnyquist', 'https://github.com/ddiakopoulos/libnyquist.git', '244afdd52e8fc5bc0396cbcd9437b2d74271509f')
-    cloneThirdPartyRepo('oboe', 'https://github.com/google/oboe', 'd25993c5dbe4750cd8d51a3729b6def6f9d20d77')
+    cloneThirdPartyRepo('oboe', 'https://github.com/google/oboe', '06ec23e4f6bc00ba7eea9b84e299f9200a598838')
     cloneThirdPartyRepo('TinySoundFont', 'https://github.com/schellingb/TinySoundFont.git', 'bf574519e601202c3a9d27a74f345921277eed39')
+    cloneThirdPartyRepo('sfizz', 'https://github.com/sfztools/sfizz.git', 'fc1f0451cebd8996992cbc4f983fcf76b03295c5')
 }
 
 preBuild.dependsOn cloneThirdPartyRepos

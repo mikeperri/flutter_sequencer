@@ -11,6 +11,12 @@ import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
 import io.flutter.plugin.common.PluginRegistry.Registrar
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
+import java.net.URLDecoder
+
+const val flutterAssetRoot = "flutter_assets"
 
 /** FlutterSequencerPlugin */
 public class FlutterSequencerPlugin: FlutterPlugin, MethodCallHandler {
@@ -56,16 +62,17 @@ public class FlutterSequencerPlugin: FlutterPlugin, MethodCallHandler {
     } else if (call.method == "setupAssetManager") {
       setupAssetManager(context.assets)
       result.success(null)
-    } else if (call.method == "listAssetDir") {
+    } else if (call.method == "normalizeAssetDir") {
       val assetDir = call.argument<String>("assetDir")!!
-      val extension = call.argument<String>("extension")
-      val paths =
-        context.assets
-          .list("flutter_assets/$assetDir")!!
-          .filter { fileName -> fileName.endsWith(".$extension") }
-          .map { path -> "$assetDir/$path" }
+      val filesDir = context.filesDir
+      val isSuccess = copyAssetDirOrFile(assetDir, filesDir)
 
-      result.success(paths)
+      if (isSuccess) {
+        val copiedDir = filesDir.resolve(assetDir).absolutePath
+        result.success(copiedDir)
+      } else {
+        result.success(null)
+      }
     } else if (call.method == "listAudioUnits") {
       result.success(emptyList<String>())
     } else {
@@ -75,6 +82,48 @@ public class FlutterSequencerPlugin: FlutterPlugin, MethodCallHandler {
 
   override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
     channel.setMethodCallHandler(null)
+  }
+
+  private fun copyAssetFile(assetFilePath: String, outputDir: File): Boolean {
+    val inputStream = context.assets.open("$flutterAssetRoot/$assetFilePath")
+    val decodedAssetFilePath = URLDecoder.decode(assetFilePath, "UTF-8")
+    val outputFile = outputDir.resolve(decodedAssetFilePath)
+    var outputStream: FileOutputStream? = null
+
+    try {
+      outputFile.parentFile.mkdirs()
+      outputFile.createNewFile()
+
+      outputStream = FileOutputStream(outputFile)
+      inputStream.copyTo(outputStream, 1024)
+    } catch (e: SecurityException) {
+      return false;
+    } catch (e: java.io.IOException) {
+      return false;
+    } finally {
+      inputStream.close()
+      outputStream?.flush()
+      outputStream?.close()
+    }
+
+    return true;
+  }
+
+  private fun copyAssetDirOrFile(assetPath: String, outputDir: File): Boolean {
+    val paths = context.assets.list("$flutterAssetRoot/$assetPath")!!
+    var isSuccess = true;
+
+    if (paths.isEmpty()) {
+      // It's a file.
+      isSuccess = isSuccess && copyAssetFile(assetPath, outputDir)
+    } else {
+      // It's a directory.
+      paths.forEach {
+        isSuccess = isSuccess && copyAssetDirOrFile("$assetPath/$it", outputDir)
+      }
+    }
+
+    return isSuccess
   }
 
   private external fun setupAssetManager(assetManager: AssetManager)

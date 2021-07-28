@@ -43,6 +43,10 @@ int32_t AndroidEngine::getChannelCount() {
     return mOutStream->getChannelCount();
 }
 
+int32_t AndroidEngine::getBufferSize() {
+    return mOutStream->getBufferSizeInFrames();
+}
+
 void AndroidEngine::play() {
     mSchedulerMixer.play();
 

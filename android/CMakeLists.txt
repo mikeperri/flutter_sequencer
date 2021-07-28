@@ -1,38 +1,33 @@
-Project(Sequencer)
+PROJECT(Sequencer)
 
-CMake_Minimum_Required(VERSION 3.13.5)
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.18.1)
+SET(CMAKE_CXX_STANDARD 17)
+SET(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-Set (OBOE_DIR ./third_party/oboe)
-Add_Subdirectory (${OBOE_DIR} ./build/oboe)
-Include_Directories (${OBOE_DIR}/include)
-INCLUDE_DIRECTORIES(../ios/Classes/CallbackManager)
-INCLUDE_DIRECTORIES(../ios/Classes/Scheduler)
+SET(OBOE_DIR ./third_party/oboe)
+ADD_SUBDIRECTORY(${OBOE_DIR} ./build/oboe)
+INCLUDE_DIRECTORIES(${OBOE_DIR}/include)
 
-Set (TSF_DIR ./third_party/TinySoundFont)
-Include_Directories (${TSF_DIR})
+SET(TSF_DIR ./third_party/TinySoundFont)
+INCLUDE_DIRECTORIES(${TSF_DIR})
 
-SET (AUDIOKIT_CORE_DIR ./third_party/AudioKit/AudioKit/Core/AudioKitCore)
-INCLUDE_DIRECTORIES(${AUDIOKIT_CORE_DIR}/Common)
-INCLUDE_DIRECTORIES(${AUDIOKIT_CORE_DIR}/Sampler)
+OPTION(SFIZZ_JACK "" OFF)
+OPTION(SFIZZ_RENDER "" OFF)
+OPTION(SFIZZ_LV2 "" OFF)
+OPTION(SFIZZ_LV2_UI "" OFF)
+OPTION(SFIZZ_VST "" OFF)
+OPTION(SFIZZ_AU "" OFF)
+OPTION(SFIZZ_SHARED "" OFF)
+SET(SFIZZ_DIR ./third_party/sfizz)
+ADD_SUBDIRECTORY(${SFIZZ_DIR})
 
-FILE(GLOB AUDIOKIT_CORE_SRCS
-        ${AUDIOKIT_CORE_DIR}/Common/*.hpp
-        ${AUDIOKIT_CORE_DIR}/Common/*.cpp
-        ${AUDIOKIT_CORE_DIR}/Sampler/*.h
-        ${AUDIOKIT_CORE_DIR}/Sampler/*.hpp
-        ${AUDIOKIT_CORE_DIR}/Sampler/*.cpp
-    )
-
-SET(BUILD_EXAMPLE OFF CACHE BOOL "Build example application" FORCE)
-SET (LIBNYQUIST_DIR ./third_party/libnyquist)
-ADD_SUBDIRECTORY(${LIBNYQUIST_DIR})
-INCLUDE_DIRECTORIES(${LIBNYQUIST_DIR}/include/libnyquist)
-
-Add_Library(
-        flutter_sequencer
-        SHARED
+ADD_LIBRARY(flutter_sequencer SHARED)
+TARGET_INCLUDE_DIRECTORIES(flutter_sequencer PRIVATE
+        ../ios/Classes/CallbackManager
+        ../ios/Classes/Scheduler
+        ../ios/Classes/IInstrument
+        )
+TARGET_SOURCES(flutter_sequencer PRIVATE
         ../ios/Classes/CallbackManager/CallbackManager.h
         ../ios/Classes/CallbackManager/CallbackManager.cpp
         ../ios/Classes/Scheduler/BaseScheduler.h
@@ -42,18 +37,16 @@ Add_Library(
         ../ios/Classes/Scheduler/SchedulerEvent.cpp
         ./src/main/cpp/AndroidEngine/AndroidEngine.h
         ./src/main/cpp/AndroidEngine/AndroidEngine.cpp
-        ./src/main/cpp/Engine/IInstrument.h
-        ./src/main/cpp/Engine/Mixer.h
-        ./src/main/cpp/Engine/SoundFontInstrument.h
-        ./src/main/cpp/Engine/SamplerInstrument.h
+        ../ios/Classes/IInstrument/IInstrument.h
+        ../ios/Classes/IInstrument/SharedInstruments/SfizzSamplerInstrument.h
+        ./src/main/cpp/AndroidInstruments/Mixer.h
+        ./src/main/cpp/AndroidInstruments/SoundFontInstrument.h
         ./src/main/cpp/Utils/AssetManager.h
         ./src/main/cpp/Utils/Logging.h
         ./src/main/cpp/Utils/OptionArray.h
         ./src/main/cpp/Plugin.cpp
+        )
 
-        ${AUDIOKIT_CORE_SRCS}
-    )
+FIND_LIBRARY(android-lib android)
 
-Find_Library(android-lib android)
-
-Target_Link_Libraries(flutter_sequencer ${android-lib} oboe libnyquist)
+TARGET_LINK_LIBRARIES(flutter_sequencer ${android-lib} oboe sfizz_static)

@@ -17,12 +17,14 @@
 #ifndef IINSTRUMENT_H
 #define IINSTRUMENT_H
 
+#ifdef __cplusplus
 #include <cstdint>
 #include "IRenderableAudio.h"
 
 class IInstrument: public IRenderableAudio {
 
 public:
+    virtual bool setOutputFormat(int32_t sampleRate, bool isStereo) = 0;
     virtual void handleMidiEvent(uint8_t status, uint8_t data1, uint8_t data2) = 0;
 
     // reset() should reset any state. It does not need to shut off all the MIDI notes, since
@@ -30,5 +32,5 @@ public:
     virtual void reset() = 0;
 };
 
-
+#endif
 #endif //IINSTRUMENT_H

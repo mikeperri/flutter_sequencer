@@ -8,6 +8,8 @@ func isAppleSampler(component: AVAudioUnitComponent) -> Bool {
 }
 
 func loadSoundFont(avAudioUnit: AVAudioUnit, soundFontURL: URL, presetIndex: Int32) {
+    assert(avAudioUnit.audioComponentDescription.componentSubType == kAudioUnitSubType_MIDISynth)
+    
     let audioUnit = avAudioUnit.audioUnit
     var mutableSoundFontURL = soundFontURL
     

@@ -2,6 +2,7 @@
 #import "./CocoaScheduler/CocoaScheduler.h"
 #import "./Scheduler/BaseScheduler.h"
 #import "./Scheduler/SchedulerEvent.h"
+#import "./AudioUnit/Sfizz/SfizzDSPKernelAdapter.h"
 
 #import "FlutterSequencerPlugin.h"
 #if __has_include(<flutter_sequencer/flutter_sequencer-Swift.h>)
@@ -13,10 +14,8 @@
 #import "flutter_sequencer-Swift.h"
 #endif
 
-#define ENV_COCOA
-
 @implementation FlutterSequencerPlugin
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
-    [SwiftFlutterSequencerPlugin registerWithRegistrar:registrar];
+  [SwiftFlutterSequencerPlugin registerWithRegistrar:registrar];
 }
 @end

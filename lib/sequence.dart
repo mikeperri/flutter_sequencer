@@ -1,11 +1,9 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:flutter_sequencer/sfz_parser.dart';
-
 import 'constants.dart';
 import 'global_state.dart';
-import 'instrument.dart';
+import 'models/instrument.dart';
 import 'native_bridge.dart';
 import 'track.dart';
 
@@ -34,7 +32,7 @@ class Sequence {
     _tracks.values.forEach((track) => deleteTrack(track));
     globalState.unregisterSequence(this);
   }
-  
+
   final _tracks = <int, Track>{};
   late int id;
 
@@ -125,16 +123,14 @@ class Sequence {
   /// Sets the tempo.
   void setTempo(double nextTempo) {
     // Update engine start frame to remove excess loops
-    final loopsElapsed =
-      loopState == LoopState.BeforeLoopEnd
+    final loopsElapsed = loopState == LoopState.BeforeLoopEnd
         ? getLoopsElapsed(_getFramesRendered())
         : 0;
     engineStartFrame += loopsElapsed * getLoopLengthFrames();
 
     // Update engine start frame to adjust to new tempo
     final framesRendered = _getFramesRendered();
-    final nextFramesRendered =
-      (framesRendered * (tempo / nextTempo)).round();
+    final nextFramesRendered = (framesRendered * (tempo / nextTempo)).round();
     final framesToAdvance = framesRendered - nextFramesRendered;
     engineStartFrame += framesToAdvance;
 
@@ -152,8 +148,7 @@ class Sequence {
     checkIsOver();
 
     // Update engine start frame to remove excess loops
-    final loopsElapsed =
-      loopState == LoopState.BeforeLoopEnd
+    final loopsElapsed = loopState == LoopState.BeforeLoopEnd
         ? getLoopsElapsed(_getFramesRendered())
         : 0;
     engineStartFrame += loopsElapsed * getLoopLengthFrames();
@@ -204,9 +199,7 @@ class Sequence {
     });
 
     final leadFrames =
-    getIsPlaying()
-      ? min(_getFramesRendered(), LEAD_FRAMES)
-      : 0;
+        getIsPlaying() ? min(_getFramesRendered(), LEAD_FRAMES) : 0;
 
     final frame = beatToFrames(beat) - leadFrames;
 
@@ -220,8 +213,8 @@ class Sequence {
     if (loopState != LoopState.Off) {
       final loopEndFrame = beatToFrames(loopEndBeat);
       loopState = frame < loopEndFrame
-        ? LoopState.BeforeLoopEnd
-        : LoopState.AfterLoopEnd;
+          ? LoopState.BeforeLoopEnd
+          : LoopState.AfterLoopEnd;
     }
   }
 
@@ -322,8 +315,10 @@ class Sequence {
     if (!globalState.isEngineReady) return 0;
 
     if (isPlaying) {
-      final frame = _getFramesRendered() + (estimateFramesSinceLastRender ? _getFramesSinceLastRender() : 0);
-      final loopedFrame = loopState == LoopState.Off ? frame : getLoopedFrame(frame);
+      final frame = _getFramesRendered() +
+          (estimateFramesSinceLastRender ? _getFramesSinceLastRender() : 0);
+      final loopedFrame =
+          loopState == LoopState.Off ? frame : getLoopedFrame(frame);
 
       return max(min(loopedFrame, beatToFrames(endBeat)), 0);
     } else {
@@ -334,69 +329,29 @@ class Sequence {
   /// Returns the number of frames elapsed since the last audio render callback
   /// was called.
   int _getFramesSinceLastRender() {
-    final microsecondsSinceLastRender =
-      max(0, DateTime.now().microsecondsSinceEpoch - NativeBridge.getLastRenderTimeUs());
+    final microsecondsSinceLastRender = max(
+        0,
+        DateTime.now().microsecondsSinceEpoch -
+            NativeBridge.getLastRenderTimeUs());
 
     return globalState.usToFrames(microsecondsSinceLastRender);
   }
 
-  /// Creates a track in the underlying sequencer engine.
   Future<Track?> _createTrack(Instrument instrument) async {
-    int? id;
+    final track = await Track.build(sequence: this, instrument: instrument);
 
-    if (instrument is Sf2Instrument) {
-      id = await NativeBridge.addTrackSf2(instrument.idOrPath, instrument.isAsset, instrument.presetIndex);
-    } else if (instrument is SfzInstrument) {
-      final parseResult = await parseSfz(instrument.idOrPath, instrument.isAsset);
-      final samplerInstrument =
-      SamplerInstrument(
-        id: instrument.idOrPath,
-        sampleDescriptors: parseResult.sampleDescriptors);
-
-      id = await _createSamplerTrack(samplerInstrument);
-    } else if (instrument is SamplerInstrument) {
-      id = await _createSamplerTrack(instrument);
-    } else if (instrument is AudioUnitInstrument) {
-      id = await NativeBridge.addTrackAudioUnit(instrument.idOrPath);
-    } else {
-      return null;
+    if (track != null) {
+      _tracks.putIfAbsent(track.id, () => track);
     }
-
-    final track =
-      Track(
-        sequence: this,
-        id: id!,
-        instrument: instrument,
-      );
-
-    _tracks.putIfAbsent(id, () => track);
 
     return track;
   }
 
   Future<List<Track>> _createTracks(List<Instrument> instruments) async {
-    final tracks = await Future.wait(instruments.map((instrument) => _createTrack(instrument)));
+    final tracks = await Future.wait(
+        instruments.map((instrument) => _createTrack(instrument)));
     final nonNullTracks = tracks.whereType<Track>().toList();
 
     return nonNullTracks;
-  }
-
-  /// Creates a sampler track and adds the sample descriptors.
-  Future<int> _createSamplerTrack(SamplerInstrument samplerInstrument) async {
-    final trackIndex = await NativeBridge.addTrackSampler();
-
-    final addSampleFutures =
-    samplerInstrument.sampleDescriptors.map((sd) =>
-      NativeBridge.addSampleToSampler(trackIndex, sd));
-
-    await Future.wait(addSampleFutures);
-
-    final buildKeyMapResult = await NativeBridge.samplerBuildKeyMap(trackIndex);
-
-    if (buildKeyMapResult) {
-      return trackIndex;
-    } else {
-      return -1;
-    }
   }
 }

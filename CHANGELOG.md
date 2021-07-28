@@ -43,3 +43,10 @@
 
 ## 0.3.2
 * Set Xcode STRIP_STYLE to "non-global" in podspec
+
+## 0.4.0
+* Replaced AudioKit Sampler with [sfizz](https://sfz.tools/sfizz/) because it supports many more SFZ opcodes, including filters and effects, and can stream samples from disk instead of loading them all into RAM.
+* Exposed APIs for scheduling MIDI CC and pitch bend events
+* BREAKING CHANGE - Replaced SamplerInstrument with RuntimeSfzInstrument. Instead of creating SampleDescriptors, now you have to build an Sfz object.
+* BREAKING CHANGE - Assets are copied to context.filesDir on Android for SFZ instruments. See the README for more info.
+* BREAKING CHANGE - SFZ player no longer handles URL-decoding asset paths

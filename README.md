@@ -27,44 +27,101 @@ You need to set the tempo and the end beat when you create the sequence.
 ```dart
 final instruments = [
   Sf2Instrument(path: "assets/sf2/TR-808.sf2", isAsset: true),
-  SfzInstrument(path: "assets/sfz/SplendidGrandPiano.sfz", isAsset: true),
-  SamplerInstrument(
-    id: "80's FM Bass",
-    sampleDescriptors: [
-      SampleDescriptor(filename: "assets/wav/D3.wav", isAsset: true, noteNumber: 62),
-      SampleDescriptor(filename: "assets/wav/F3.wav", isAsset: true, noteNumber: 65),
-      SampleDescriptor(filename: "assets/wav/G#3.wav", isAsset: true, noteNumber: 68),
-    ]
+  SfzInstrument(
+    path: "assets/sfz/GMPiano.sfz",
+    isAsset: true,
+    tuningPath: "assets/sfz/meanquar.scl",
+  ),
+  RuntimeSfzInstrument(
+    id: "Sampled Synth",
+    sampleRoot: "assets/wav",
+    isAsset: true,
+    sfz: Sfz(
+      groups: [
+        SfzGroup(
+          regions: [
+            SfzRegion(sample: "D3.wav", noteNumber: 62),
+            SfzRegion(sample: "F3.wav", noteNumber: 65),
+            SfzRegion(sample: "Gsharp3.wav", noteNumber: 68),
+          ],
+        ),
+      ],
+    ),
+  ),
+  RuntimeSfzInstrument(
+    id: "Generated Synth",
+    // This SFZ doesn't use any sample files, so just put "/" as a placeholder.
+    sampleRoot: "/",
+    isAsset: false,
+    // Based on the Unison Oscillator example here:
+    // https://sfz.tools/sfizz/quick_reference#unison-oscillator
+    sfz: Sfz(
+      groups: [
+        SfzGroup(
+          regions: [
+            SfzRegion(
+              sample: "*saw",
+              otherOpcodes: {
+                "oscillator_multi": "5",
+                "oscillator_detune": "50",
+              }
+            )
+          ]
+        )
+      ]
+    )
   ),
 ];
 ```
 An instrument can be used to create one or more tracks.
 There are four instruments:
 
-1. SamplerInstrument, to load a list of SampleDescriptors in the AudioKitSampler manually without an SFZ file
-    - On iOS and Android, it will be played by the [AudioKit Sampler](https://github.com/AudioKit/AudioKit/tree/v4-master/AudioKit/Core/AudioKitCore/Sampler)
-    - A SampleDescriptor can point to a .wav or a .wv (WavPack) file. I recommend using .wv when
-    possible, since it supports lossless compression. It's easy to convert audio files to WavPack
+1. SfzInstrument, to load a `.sfz` file and the samples it refers to.
+    - On iOS and Android, it will be played by [sfizz](https://sfz.tools/sfizz/)
+    - As far as I know, sfizz is the most complete and most frequently updated SFZ player library
+    with a license that permits commercial use.
+    - Sfizz supports .wav and .flac sample files, among others. I recommend using .flac when
+    possible, since it supports lossless compression. It's easy to convert audio files to FLAC
     format with ffmpeg.
-    - The only things you need to specify about a sample are its path, whether or not it's an asset,
-    and what note number it should correspond to.
-    - Optionally, you can set a note range or a velocity range for each sample. You can create
-    "velocity layers" like this, where lower velocities trigger different samples than higher ones.
-2. SfzInstrument, to load a `.sfz` SFZ file.
-    - This will also be played by the AudioKit sampler.
-    - Only a few SFZ opcodes are supported. Look at sfz_parser.dart to see which ones are
-    acknowledged.
-    - This is not a full-fledged SFZ player. SFZ just provides a convenient format to load samples
-    into the sampler.
+    - You can also create an SFZ that doesn't use any sample files by setting `sample` to a
+    predefined waveform, such as `*sine`, `*saw`, `*square`, `*triangle`, or `*noise`.
+    - Check which SFZ opcodes are supported by sfizz here:
+    <https://sfz.tools/sfizz/development/status/opcodes/>
+    - Learn more about the SFZ format here: <https://sfzformat.com>
+2. RuntimeSfzInstrument, to build an SFZ at runtime.
+    - This will also be played by [sfizz](https://sfz.tools/sfizz/).
+    - Instead of a file, you pass an `Sfz` object to the constructor. See the example.
+    - You might use this so that your app can build a synth using selected oscillators, or a sampler
+    using user-provided samples.
 3. Sf2Instrument, to load a `.sf2` SoundFont file.
     - On iOS, it will be played by the built-in Apple MIDI synth AudioUnit
     - On Android, it will be played by [tinysoundfont](https://github.com/schellingb/TinySoundFont)
+    - I recommend using SFZ format, since sfizz can stream samples from disk. This way you can load
+    bigger sound fonts without running out of RAM.
+    - You can easily convert SF2 to SFZ with [Polyphone](https://www.polyphone-soundfonts.com). Just
+    open the SF2, click the menu icon at the top right, and click "Export Soundfonts." Change the
+    format to SFZ. The other options shouldn't matter.
 4. AudioUnitInstrument, to load an AudioUnit
     - This will only work on iOS
-        
+    - You might use this if you are making a DAW type of app.
+
 For an SF2 or SFZ instrument, pass `isAsset: true` to load a path in the Flutter assets directory.
 You should use assets for "factory preset" sounds. To load user-provided or downloaded sounds
 from the filesystem, pass `isAsset: false`.
+
+### Important notes about `isAsset: true`
+Note that on Android, SFZ files and samples that are loaded with `isAsset: true` will be extracted
+from the bundle into the application files directory (`context.filesDir`), since sfizz cannot read
+directly from Android assets. This means they will exist in two places on the device - in the
+APK in compressed (zipped) form and in the files directory in uncompressed form. So I only recommend
+using `isAsset: true` if your samples are small. If you want to include high-quality soundfonts in
+your app, your app should download them at runtime.
+
+Note that on either platform, **Flutter asset paths get URL-encoded**. For example, if you put a
+file called "Piano G#5.wav" in your assets folder, it will end up being called "Piano%20G%235.wav"
+on the device. So if you are bundling an SFZ file as an asset, make sure that you either remove any
+special characters and spaces from the sample file names, or update the SFZ file to refer to the
+URL-encoded sample paths. I recommend just getting rid of any spaces and special characters.
 
 ### Optional: keep engine running
 ```dart
@@ -99,6 +156,24 @@ track.addVolumeChange(volume: 0.75, beat: 2.0);
 This will schedule a volume change. It can be used to do volume automation. Note that track volume
 is on a linear scale, not a logarithmic scale. You may want to use a logarithmic scale and convert
 to linear.
+
+```dart
+track.addMidiCC(ccNumber: 127, ccValue: 127, beat: 2.0);
+```
+This will schedule a MIDI CC event. These can be used to change parameters in a sound font. For
+example, in an SFZ, you can use the "cutoff_cc1" and "cutoff" opcodes to define a filter where the
+cutoff can be changed with MIDI CC events. There are many other parameters that can be controlled
+by CC as well, such as amp envelope, filter envelope, sample offset, and EQ parameters. For more
+information, see [how to do modulations in SFZ](https://sfzformat.com/tutorials/sfz1_modulations)
+and [how to use filter cutoff in SFZ](https://sfzformat.com/opcodes/cutoff).
+
+```dart
+track.addMidiPitchBend(value: 1.0, beat: 2.0);
+```
+This will schedule a MIDI pitch bend event. The value can be from -1.0 to 1.0. Note that the value
+is NOT the number of semitones. The sound font defines how many semitones the bend range is. For
+example, in an SFZ, you can use the "bend_down" and "bend_up" opcodes to define how many cents the
+pitch will be changed when the bend value is set to -1.0 and 1.0, respectively.
 
 ### Control playback
 ```dart

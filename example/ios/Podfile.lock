@@ -1,23 +1,11 @@
 PODS:
-  - AudioKit (4.11.1):
-    - AudioKit/Core (= 4.11.1)
-    - AudioKit/UI (= 4.11.1)
-  - AudioKit/Core (4.11.1)
-  - AudioKit/UI (4.11.1):
-    - AudioKit/Core
   - Flutter (1.0.0)
   - flutter_sequencer (0.0.1):
-    - AudioKit
     - Flutter
 
 DEPENDENCIES:
-  - AudioKit (~> 4.11.1)
   - Flutter (from `Flutter`)
   - flutter_sequencer (from `.symlinks/plugins/flutter_sequencer/ios`)
-
-SPEC REPOS:
-  trunk:
-    - AudioKit
 
 EXTERNAL SOURCES:
   Flutter:
@@ -26,10 +14,9 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/flutter_sequencer/ios"
 
 SPEC CHECKSUMS:
-  AudioKit: 059a783edd8340ca0130a66d1ad126aa5bb8ad92
   Flutter: 434fef37c0980e73bb6479ef766c45957d4b510c
-  flutter_sequencer: 09c6638d1aa87976a7982ae2ff8a70dbf37e2213
+  flutter_sequencer: 109ede37ef92fd6ea7f619fd3291e5b3d744c97d
 
-PODFILE CHECKSUM: 439e2bf769b079107f23ff56ccb9301a43ea44e3
+PODFILE CHECKSUM: dad5c248050686c335cc08c1ccd09e748efa0961
 
 COCOAPODS: 1.10.1

@@ -1,8 +1,8 @@
 name: flutter_sequencer
-version: 0.3.2
+version: 0.4.0
 description: >-
   A Flutter plugin for sequencing audio. Use it to build sequences of notes and play them back using
-  sampler instruments. Supports looping.
+  SFZ or SF2 sound fonts.
 repository: https://github.com/mikeperri/flutter_sequencer
 
 environment:
@@ -13,6 +13,7 @@ dependencies:
   flutter:
     sdk: flutter
   ffi: ^1.0.0
+  path: ^1.8.0
 
 dev_dependencies:
   flutter_test:

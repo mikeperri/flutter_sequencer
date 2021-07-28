@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_sequencer/global_state.dart';
-import 'package:flutter_sequencer/models/sample_descriptor.dart';
-
+import 'package:flutter_sequencer/models/sfz.dart';
+import 'package:flutter_sequencer/models/instrument.dart';
 import 'package:flutter_sequencer/sequence.dart';
-import 'package:flutter_sequencer/instrument.dart';
 import 'package:flutter_sequencer/track.dart';
 
 import 'components/drum_machine/drum_machine.dart';
@@ -27,7 +26,8 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
-  final sequence = Sequence(tempo: INITIAL_TEMPO, endBeat: INITIAL_STEP_COUNT.toDouble());
+  final sequence =
+      Sequence(tempo: INITIAL_TEMPO, endBeat: INITIAL_STEP_COUNT.toDouble());
   Map<int, StepSequencerState?> trackStepSequencerStates = {};
   List<Track> tracks = [];
   Map<int, double> trackVolumes = {};
@@ -47,15 +47,50 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
 
     final instruments = [
       Sf2Instrument(path: "assets/sf2/TR-808.sf2", isAsset: true),
-      SfzInstrument(path: "assets/sfz/SplendidGrandPiano.sfz", isAsset: true),
-      SamplerInstrument(
-        id: "80's FM Bass",
-        sampleDescriptors: [
-          SampleDescriptor(filename: "assets/wav/D3.wav", isAsset: true, noteNumber: 62),
-          SampleDescriptor(filename: "assets/wav/F3.wav", isAsset: true, noteNumber: 65),
-          SampleDescriptor(filename: "assets/wav/G#3.wav", isAsset: true, noteNumber: 68),
-        ]
-      )
+      SfzInstrument(
+        path: "assets/sfz/GMPiano.sfz",
+        isAsset: true,
+        tuningPath: "assets/sfz/meanquar.scl",
+      ),
+      RuntimeSfzInstrument(
+        id: "Sampled Synth",
+        sampleRoot: "assets/wav",
+        isAsset: true,
+        sfz: Sfz(
+          groups: [
+            SfzGroup(
+              regions: [
+                SfzRegion(sample: "D3.wav", key: 62),
+                SfzRegion(sample: "F3.wav", key: 65),
+                SfzRegion(sample: "Gsharp3.wav", key: 68),
+              ]
+            )
+          ]
+        )
+      ),
+      RuntimeSfzInstrument(
+        id: "Generated Synth",
+        // This SFZ doesn't use any sample files, so just put "/" as a placeholder.
+        sampleRoot: "/",
+        isAsset: false,
+        // Based on the Unison Oscillator example here:
+        // https://sfz.tools/sfizz/quick_reference#unison-oscillator
+        sfz: Sfz(
+          groups: [
+            SfzGroup(
+              regions: [
+                SfzRegion(
+                  sample: "*saw",
+                  otherOpcodes: {
+                    "oscillator_multi": "5",
+                    "oscillator_detune": "50",
+                  }
+                )
+              ]
+            )
+          ]
+        )
+      ),
     ];
 
     sequence.createTracks(instruments).then((tracks) {
@@ -66,14 +101,12 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
       });
 
       setState(() {
-
         this.selectedTrack = tracks[0];
       });
     });
 
     ticker = this.createTicker((Duration elapsed) {
       setState(() {
-
         tempo = sequence.getTempo();
         position = sequence.getBeat();
         isPlaying = sequence.getIsPlaying();
@@ -150,7 +183,8 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
     }
   }
 
-  handleVelocitiesChange(int trackId, int step, int noteNumber, double velocity) {
+  handleVelocitiesChange(
+      int trackId, int step, int noteNumber, double velocity) {
     final track = tracks.firstWhere((track) => track.id == trackId);
 
     trackStepSequencerStates[trackId]!.setVelocity(step, noteNumber, velocity);
@@ -160,13 +194,14 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
 
   syncTrack(track) {
     track.clearEvents();
-    trackStepSequencerStates[track.id]!.iterateEvents((step, noteNumber, velocity) {
+    trackStepSequencerStates[track.id]!
+        .iterateEvents((step, noteNumber, velocity) {
       if (step < stepCount) {
         track.addNote(
-          noteNumber: noteNumber,
-          velocity: velocity,
-          startBeat: step.toDouble(),
-          durationBeats: 1.0);
+            noteNumber: noteNumber,
+            velocity: velocity,
+            startBeat: step.toDouble(),
+            durationBeats: 1.0);
       }
     });
     track.syncBuffer();
@@ -178,14 +213,13 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
     trackStepSequencerStates[tracks[0].id] = projectState.drumState;
     trackStepSequencerStates[tracks[1].id] = projectState.pianoState;
     trackStepSequencerStates[tracks[2].id] = projectState.bassState;
+    trackStepSequencerStates[tracks[3].id] = projectState.synthState;
 
     handleStepCountChange(projectState.stepCount);
     handleTempoChange(projectState.tempo);
     handleSetLoop(projectState.isLooping);
 
-    syncTrack(tracks[0]);
-    syncTrack(tracks[1]);
-    syncTrack(tracks[2]);
+    tracks.forEach(syncTrack);
   }
 
   handleReset() {
@@ -202,73 +236,66 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
     final isDrumTrackSelected = selectedTrack == tracks[0];
 
     return Center(
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              Transport(
-                isPlaying: isPlaying,
-                isLooping: isLooping,
-                onTogglePlayPause: handleTogglePlayPause,
-                onStop: handleStop,
-                onToggleLoop: handleToggleLoop,
-              ),
-              PositionView(position: position),
-            ]
+      child: Column(children: [
+        Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
+          Transport(
+            isPlaying: isPlaying,
+            isLooping: isLooping,
+            onTogglePlayPause: handleTogglePlayPause,
+            onStop: handleStop,
+            onToggleLoop: handleToggleLoop,
           ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              StepCountSelector(stepCount: stepCount, onChange: handleStepCountChange),
-              TempoSelector(
-                selectedTempo: tempo,
-                handleChange: handleTempoChange,
-              ),
-            ],
+          PositionView(position: position),
+        ]),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            StepCountSelector(
+                stepCount: stepCount, onChange: handleStepCountChange),
+            TempoSelector(
+              selectedTempo: tempo,
+              handleChange: handleTempoChange,
+            ),
+          ],
+        ),
+        TrackSelector(
+          tracks: tracks,
+          selectedTrack: selectedTrack,
+          handleChange: handleTrackChange,
+        ),
+        Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+          MaterialButton(
+            child: Text('Reset'),
+            onPressed: handleReset,
           ),
-          TrackSelector(
-            tracks: tracks,
-            selectedTrack: selectedTrack,
-            handleChange: handleTrackChange,
+          MaterialButton(
+            child: Text('Load Demo'),
+            onPressed: handleLoadDemo,
           ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              MaterialButton(
-                child: Text('Reset'),
-                onPressed: handleReset,
-              ),
-              MaterialButton(
-                child: Text('Load Demo'),
-                onPressed: handleLoadDemo,
-              ),
-            ]
-          ),
-          DrumMachineWidget(
-            track: selectedTrack!,
-            stepCount: stepCount,
-            currentStep: position.floor(),
-            rowLabels: isDrumTrackSelected ? ROW_LABELS_DRUMS : ROW_LABELS_PIANO,
-            columnPitches: isDrumTrackSelected ? ROW_PITCHES_DRUMS : ROW_PITCHES_PIANO,
-            volume: trackVolumes[selectedTrack!.id] ?? 0.0,
-            stepSequencerState: trackStepSequencerStates[selectedTrack!.id],
-            handleVolumeChange: handleVolumeChange,
-            handleVelocitiesChange: handleVelocitiesChange,
-          ),
-        ]
-      ),
+        ]),
+        DrumMachineWidget(
+          track: selectedTrack!,
+          stepCount: stepCount,
+          currentStep: position.floor(),
+          rowLabels: isDrumTrackSelected ? ROW_LABELS_DRUMS : ROW_LABELS_PIANO,
+          columnPitches:
+              isDrumTrackSelected ? ROW_PITCHES_DRUMS : ROW_PITCHES_PIANO,
+          volume: trackVolumes[selectedTrack!.id] ?? 0.0,
+          stepSequencerState: trackStepSequencerStates[selectedTrack!.id],
+          handleVolumeChange: handleVolumeChange,
+          handleVelocitiesChange: handleVelocitiesChange,
+        ),
+      ]),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      theme:
-        ThemeData(
+      theme: ThemeData(
           colorScheme: ColorScheme.dark(),
-          textTheme: Theme.of(context).textTheme.apply(bodyColor: Colors.white)
-        ),
+          textTheme:
+              Theme.of(context).textTheme.apply(bodyColor: Colors.white)),
       home: Scaffold(
         appBar: AppBar(title: const Text('Drum machine example')),
         body: _getMainView(),

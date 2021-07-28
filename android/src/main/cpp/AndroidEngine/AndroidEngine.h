@@ -3,8 +3,8 @@
 
 #include <oboe/Oboe.h>
 #include "CallbackManager.h"
-#include "../Engine/IInstrument.h"
-#include "../Engine/Mixer.h"
+#include "IInstrument.h"
+#include "../AndroidInstruments/Mixer.h"
 
 class AndroidEngine : public oboe::AudioStreamCallback {
 public:
@@ -15,6 +15,7 @@ public:
 
     int32_t getSampleRate();
     int32_t getChannelCount();
+    int32_t getBufferSize();
     void play();
     void pause();
 

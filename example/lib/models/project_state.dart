@@ -10,6 +10,7 @@ class ProjectState {
     required this.drumState,
     required this.pianoState,
     required this.bassState,
+    required this.synthState,
   });
 
   final int stepCount;
@@ -18,6 +19,7 @@ class ProjectState {
   final StepSequencerState drumState;
   final StepSequencerState pianoState;
   final StepSequencerState bassState;
+  final StepSequencerState synthState;
 
   static ProjectState empty() {
     return ProjectState(
@@ -27,6 +29,7 @@ class ProjectState {
       drumState: StepSequencerState(),
       pianoState: StepSequencerState(),
       bassState: StepSequencerState(),
+      synthState: StepSequencerState(),
     );
   }
 
@@ -148,6 +151,7 @@ class ProjectState {
     pianoState.setVelocity(47, 60, 0.9);
 
     final bassState = StepSequencerState();
+    final synthState = StepSequencerState();
 
     return ProjectState(
       stepCount: 48,
@@ -156,6 +160,7 @@ class ProjectState {
       pianoState: pianoState,
       drumState: drumState,
       bassState: bassState,
+      synthState: synthState,
     );
   }
 }

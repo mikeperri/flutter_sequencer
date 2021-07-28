@@ -35,10 +35,7 @@ class AudioUnitUtils {
         AVAudioUnit.instantiate(with: description, options: options) { avAudioUnit, error in
             assert(error == nil)
             guard let avAudioUnit = avAudioUnit else { return }
-
-            let result = AudioUnitInitialize(avAudioUnit.audioUnit)
-            assert(result == noErr)
-            
+    
             completion(avAudioUnit)
         }
     }

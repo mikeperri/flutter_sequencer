@@ -1,6 +1,5 @@
 import Foundation
 import AVFoundation
-import AudioKit
 
 public class CocoaEngine {
     var scheduler: UnsafeMutableRawPointer!
@@ -17,15 +16,14 @@ public class CocoaEngine {
         outputFormat = engine.outputNode.outputFormat(forBus: 0)
         
         self.registrar = registrar
-        
-        AKSampler.register()
-        AKSettings.enableLogging = true
 
         initMixer {
             self.scheduler = InitScheduler(self.mixer!.audioUnit, self.outputFormat.sampleRate)
 
             callbackToDartInt32(sampleRateCallbackPort, Int32(self.outputFormat.sampleRate))
         }
+        
+        SfizzAU.registerAU()
     }
     
     deinit {
@@ -34,72 +32,41 @@ public class CocoaEngine {
         scheduler.deallocate()
     }
     
-    func addTrackSampler(completion: @escaping (track_index_t?) -> Void) {
-        let trackIndex = SchedulerAddTrack(self.scheduler)
-
-        AVAudioUnit.instantiate(with: AKSampler.ComponentDescription, options: []) { avAudioUnit, err in
-            if let avAudioUnit = avAudioUnit {
-                AudioUnitUtils.setSampleRate(avAudioUnit: avAudioUnit, sampleRate: self.outputFormat.sampleRate)
+    func addTrackSfz(sfzPath: UnsafePointer<CChar>, tuningPath: UnsafePointer<CChar>, completion: @escaping (track_index_t) -> Void) {
+        AudioUnitUtils.instantiate(
+            description: SfizzAU.componentDescription,
+            sampleRate: self.outputFormat.sampleRate,
+            options: AudioComponentInstantiationOptions.loadOutOfProcess
+        ) { avAudioUnit in
+            AudioUnitUtils.setSampleRate(avAudioUnit: avAudioUnit, sampleRate: self.outputFormat.sampleRate)
+            let sfizzAU = avAudioUnit.auAudioUnit as! SfizzAU
+            
+            if (sfizzAU.loadSfzFile(path: sfzPath, tuningPath: tuningPath)) {
+                let trackIndex = SchedulerAddTrack(self.scheduler)
                 self.setTrackAudioUnit(trackIndex: trackIndex, avAudioUnit: avAudioUnit)
-                
                 completion(trackIndex)
             } else {
-                completion(nil)
+                completion(-1)
             }
         }
     }
     
-    func addSampleToSampler(trackIndex: track_index_t, samplePath: String, isAsset: Bool, sd: AKSampleDescriptor, completion: @escaping (Bool) -> Void) {
-        if let url = getUrlForPath(samplePath, isAsset: isAsset) {
-            if let avAudioUnit = self.getAvAudioUnits()[trackIndex] {
-                if let akSamplerAU = avAudioUnit.auAudioUnit as? AKSamplerAudioUnit {
-                    if url.path.hasSuffix(".wv") {
-                        url.path.cString(using: .ascii)?.withUnsafeBufferPointer { buffer in
-                            akSamplerAU.loadCompressedSampleFile(
-                                from: AKSampleFileDescriptor(sampleDescriptor: sd, path: buffer.baseAddress))
-                            completion(true)
-                        }
-                    } else {
-                        do {
-                            let file = try AKAudioFile(forReading: url)
-                            let sampleRate = Float(file.sampleRate)
-                            let sampleCount = Int32(file.samplesCount)
-                            let channelCount = Int32(file.channelCount)
-                            var flattened = Array(file.floatChannelData!.joined())
-                            flattened.withUnsafeMutableBufferPointer { data in
-                                akSamplerAU.loadSampleData(from: AKSampleDataDescriptor(sampleDescriptor: sd,
-                                                                                        sampleRate: sampleRate,
-                                                                                        isInterleaved: false,
-                                                                                        channelCount: channelCount,
-                                                                                        sampleCount: sampleCount,
-                                                                                        data: data.baseAddress) )
-                            }
-                            completion(true)
-                        } catch {
-                            completion(false)
-                        }
-                    }
-                } else {
-                    completion(false)
-                }
+    func addTrackSfzString(sampleRoot: UnsafePointer<CChar>, sfzString: UnsafePointer<CChar>, tuningString: UnsafePointer<CChar>, completion: @escaping (track_index_t) -> Void) {
+        AudioUnitUtils.instantiate(
+            description: SfizzAU.componentDescription,
+            sampleRate: self.outputFormat.sampleRate,
+            options: AudioComponentInstantiationOptions.loadOutOfProcess
+        ) { avAudioUnit in
+            AudioUnitUtils.setSampleRate(avAudioUnit: avAudioUnit, sampleRate: self.outputFormat.sampleRate)
+            let sfizzAU = avAudioUnit.auAudioUnit as! SfizzAU
+
+            if (sfizzAU.loadSfzString(sampleRoot: sampleRoot, sfzString: sfzString, tuningString: tuningString)) {
+                let trackIndex = SchedulerAddTrack(self.scheduler)
+                self.setTrackAudioUnit(trackIndex: trackIndex, avAudioUnit: avAudioUnit)
+                completion(trackIndex)
             } else {
-                completion(false)
+                completion(-1)
             }
-        } else {
-            completion(false)
-        }
-    }
-    
-    func buildKeyMap(trackIndex: track_index_t, completion: @escaping (Bool) -> Void) {
-        if let avAudioUnit = getAvAudioUnits()[trackIndex] {
-            if let akSamplerAU = avAudioUnit.auAudioUnit as? AKSamplerAudioUnit {
-                akSamplerAU.buildSimpleKeyMap()
-                completion(true)
-            } else {
-                completion(false)
-            }
-        } else {
-            completion(false)
         }
     }
     
@@ -117,7 +84,12 @@ public class CocoaEngine {
                 ) { avAudioUnit in
                     AudioUnitUtils.setSampleRate(avAudioUnit: avAudioUnit, sampleRate: self.outputFormat.sampleRate)
                     
-                    if let url = self.getUrlForPath(sf2Path, isAsset: isAsset) {
+                    // Apple Sampler needs to be initialized again or pre-loading patch won't work
+                    let error = AudioUnitInitialize(avAudioUnit.audioUnit)
+                    assert(error == noErr)
+                    
+                    if let normalizedPath = self.normalizePath(sf2Path, isAsset: isAsset) {
+                        let url = URL(fileURLWithPath: normalizedPath)
                         
                         loadSoundFont(avAudioUnit: avAudioUnit, soundFontURL: url, presetIndex: presetIndex)
                         
@@ -205,10 +177,10 @@ public class CocoaEngine {
             self.mixer = avAudioUnit
             
             if let avAudioUnit = avAudioUnit {
+                let hardwareFormat = self.engine.outputNode.outputFormat(forBus: 0)
+                
                 self.engine.attach(avAudioUnit)
-                let auOutputFormat = avAudioUnit.outputFormat(forBus: 0)
-            
-                self.engine.connect(avAudioUnit, to: self.engine.outputNode, format: auOutputFormat)
+                self.engine.connect(avAudioUnit, to: self.engine.outputNode, format: hardwareFormat)
                 
                 completion()
             }
@@ -216,9 +188,11 @@ public class CocoaEngine {
     }
     
     func connect(avAudioUnit: AVAudioUnit, trackIndex: Int32) {
-        self.engine.attach(avAudioUnit)
+        // let hardwareFormat = self.engine.outputNode.outputFormat(forBus: 0)
+        // let stereoFormat = AVAudioFormat(standardFormatWithSampleRate: hardwareFormat.sampleRate, channels: 2)
         let auOutputFormat = avAudioUnit.outputFormat(forBus: 0)
-
+        
+        self.engine.attach(avAudioUnit)
         self.engine.connect(avAudioUnit, to: self.mixer!, fromBus: 0, toBus: AVAudioNodeBus(trackIndex), format: auOutputFormat)
     }
     
@@ -237,15 +211,15 @@ public class CocoaEngine {
         self.unsafeAvAudioUnits = nextAvAudioUnits;
     }
     
-    private func getUrlForPath(_ path: String, isAsset: Bool) -> URL? {
+    private func normalizePath(_ path: String, isAsset: Bool) -> String? {
         if (!isAsset) {
-            return URL(fileURLWithPath: path)
+            return path
         } else {
             let key = registrar.lookupKey(forAsset: path)
             let bundlePath = Bundle.main.path(forResource: key, ofType: nil)
             
             if let bundlePath = bundlePath {
-                return URL(fileURLWithPath: bundlePath)
+                return bundlePath
             } else {
                 return nil
             }

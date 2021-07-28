@@ -17,6 +17,7 @@
 #ifndef IRENDERABLEAUDIO_H
 #define IRENDERABLEAUDIO_H
 
+#ifdef __cplusplus
 #include <cstdint>
 #include <string>
 
@@ -27,5 +28,5 @@ public:
     virtual void renderAudio(float *audioData, int32_t numFrames) = 0;
 };
 
-
+#endif
 #endif //IRENDERABLEAUDIO_H
