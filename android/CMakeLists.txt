@@ -1,6 +1,6 @@
 Project(Sequencer)
 
-CMake_Minimum_Required(VERSION 3.10.2)
+CMake_Minimum_Required(VERSION 3.13.5)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 

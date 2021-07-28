@@ -6,12 +6,15 @@ buildscript {
     repositories {
         google()
         jcenter()
+        maven {
+            url "http://download.eclipse.org/jgit/maven"
+        }
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:4.0.0'
+        classpath 'com.android.tools.build:gradle:4.1.2'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        classpath 'org.ajoberstar.grgit:grgit-gradle:4.1.0'
+        classpath "org.eclipse.jgit:org.eclipse.jgit:5.5.+"
     }
 }
 
@@ -45,31 +48,49 @@ android {
     }
     externalNativeBuild {
         cmake {
-            version "3.10.2"
+            version "3.18.1"
             path "CMakeLists.txt"
         }
     }
 }
 
-void cloneThirdPartyRepo(String name, String uri, String branch) {
+void cloneThirdPartyRepo(String name, String uri, String commit) {
     def dirPath = "$projectDir/third_party/$name"
     def dir = new File(dirPath)
+    org.eclipse.jgit.api.Git repo;
+
+    if (dir.exists()) {
+        repo = org.eclipse.jgit.api.Git.open(dir)
+        def status = repo.status().call();
+        def head = repo.log().setMaxCount(1).call().iterator().next();
+
+        if (!status.clean || head.name != commit) {
+            dir.deleteDir();
+        }
+    }
 
     if (!dir.exists()) {
         dir.mkdirs()
-        org.ajoberstar.grgit.Grgit.clone(
-            dir: dirPath,
-            uri: uri,
-            refToCheckout: branch
-        )
+        repo =
+            org.eclipse.jgit.api.Git.cloneRepository()
+                .setDirectory(dir)
+                .setURI(uri)
+                .setRemote('origin')
+                .setCloneSubmodules(true)
+                .call()
+
+        repo.checkout().setName(commit).call()
     }
+
+    repo.submoduleUpdate()
+    repo.submoduleInit()
 }
 
 task cloneThirdPartyRepos {
-    cloneThirdPartyRepo('AudioKit', 'https://github.com/AudioKit/AudioKit', 'v4')
-    cloneThirdPartyRepo('libnyquist', 'https://github.com/mikeperri/libnyquist.git', 'fix-wavpack-int-lossy')
-    cloneThirdPartyRepo('oboe', 'https://github.com/google/oboe', '1.4-stable')
-    cloneThirdPartyRepo('TinySoundFont', 'https://github.com/schellingb/TinySoundFont.git', 'master')
+    cloneThirdPartyRepo('AudioKit', 'https://github.com/AudioKit/AudioKit', 'a3a1405c906262588e27c445a7b1f4ad7e3eade3')
+    cloneThirdPartyRepo('libnyquist', 'https://github.com/ddiakopoulos/libnyquist.git', '244afdd52e8fc5bc0396cbcd9437b2d74271509f')
+    cloneThirdPartyRepo('oboe', 'https://github.com/google/oboe', 'd25993c5dbe4750cd8d51a3729b6def6f9d20d77')
+    cloneThirdPartyRepo('TinySoundFont', 'https://github.com/schellingb/TinySoundFont.git', 'bf574519e601202c3a9d27a74f345921277eed39')
 }
 
 preBuild.dependsOn cloneThirdPartyRepos
