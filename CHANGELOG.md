@@ -40,3 +40,6 @@
 ## 0.3.1
 * Clone third party repos with JGit library instead of deprecated Gradle plugin in Android build
 * Update Kotlin version to get rid of warnings in Android build
+
+## 0.3.2
+* Set Xcode STRIP_STYLE to "non-global" in podspec
