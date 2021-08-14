@@ -36,3 +36,7 @@
 * Send MIDI note off for all notes when a track is stopped
 * Prevent rounding errors in getIsOver() by using frames instead of beats
 * Add Track.addNoteOn and .addNoteOff methods
+
+## 0.3.1
+* Clone third party repos with JGit library instead of deprecated Gradle plugin in Android build
+* Update Kotlin version to get rid of warnings in Android build
