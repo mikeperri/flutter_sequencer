@@ -4,15 +4,16 @@ This Flutter plugin lets you set up sampler instruments and create multi-track s
 that play on those instruments. You can specify a loop range for a sequence and schedule volume
 automations.
 
-It uses the [core sampler engine from AudioKit](https://github.com/AudioKit/AudioKit/tree/v4-master/AudioKit/Core/AudioKitCore/Sampler)
-on both Android and iOS, which lets you create an instrument by loading some samples and specifying
-what notes they are. If you play a note you don't have a sample for, it will pitch shift your other
-samples to fill in the gaps. It also supports playing SF2 (SoundFont) files on both platforms, and
-on iOS, you can load any AudioUnit instrument.
+It uses the [sfizz](https://sfz.tools/sfizz/) SFZ player on both Android and iOS. The
+[SFZ format](https://sfzformat.com) can be used to create high-quality sample-based instruments and
+do subtractive synthesis. These instruments can have modulation parameters that can be controlled by
+your Flutter UI. The plugin also supports playing SF2 (SoundFont) files on both platforms, and on
+iOS, you can load any AudioUnit instrument.
 
-The example app is a drum machine. In theory, though, you could make a whole sample-based DAW with
-this plugin. You could also use it for game sound effects, or even to generate a dynamic game
-soundtrack.
+The example app is a drum machine, but there are many things you could build. The plugin is not
+limited to "step" based sequencing. You could make a whole sample-based DAW. You could use it to
+make a cross-platform app to host your SFZ instrument. You could also use it for game sound effects,
+or even to generate a dynamic game soundtrack.
 
 ![Drum machine example on Android](https://michaeljperri.com/images/DrumMachineExampleAndroid.png)
 
@@ -268,10 +269,11 @@ will occur indefinitely, so the buffer will never be big enough. To deal with th
 will periodically "top off" each track's buffer.
 
 ## Development instructions
-Note that the Android build uses several third party libraries. The Gradle build will download them
-from GitHub into the android/third_party directory.
+Note that the Android build uses several third party libraries, including sfizz. The Gradle build
+will download them from GitHub into the android/third_party directory.
 
-The iOS build depends on the AudioKit library. It will be downloaded by CocoaPods.
+The iOS also uses the sfizz library. It will be downloaded by the prepare.sh script which CocoaPods
+will run.
 
 To build the C++ tests on Mac OS, go into the `cpp_test` directory, and run
 ```
@@ -290,7 +292,6 @@ PRs are welcome! If you use this plugin in your project, please consider contrib
 bug or by tackling one of these to-do items.
 
 ### Difficulty: Easy
-- (important) Enable setting the AudioKit Sampler envelope parameters
 - Change position_frame_t to 64-bit integer to avoid overflow errors
 - Make constants configurable (TOP_OFF_PERIOD_MS and LEAD_FRAMES)
 - Support federated plugins
@@ -298,7 +299,6 @@ bug or by tackling one of these to-do items.
 ### Difficulty: Medium
 - Start using Dart null safety
 - Support tempo automation
-- Support pitch bends and custom tunings
 - MIDI Out instrument
     - Create an instrument that doesn't make any sounds on its own and just sends MIDI
     events to a designated MIDI output port.
@@ -316,17 +316,7 @@ bug or by tackling one of these to-do items.
 - Ensure there are no memory leaks or concurrency issues
 
 ### Difficulty: Hard
-- Generic C++ instrument
-    - Create an instrument that can be used on iOS and Android. The AudioKit Sampler works this way,
-    but this library uses AudioKit's AudioUnit wrapper for it. The hard part is creating an
-    generic AudioUnit wrapper for a C++ `IInstrument`.
-- Full SFZ support
-    - This would probably involve the [sfizz](https://github.com/sfztools/sfizz/) library
-        - It may be difficult to build sfizz and its dependencies for Android and iOS. Ideally it
-        would have a more modular build - this project doesn't need its support for AU/LV/VST,
-        audio output, and audio file decoding.
 - Support Windows
-    - Some of the code in the Android directory might be able to be reused
 - Record audio output
 - Support React Native?
     - Could use dart2js

@@ -50,3 +50,6 @@
 * BREAKING CHANGE - Replaced SamplerInstrument with RuntimeSfzInstrument. Instead of creating SampleDescriptors, now you have to build an Sfz object.
 * BREAKING CHANGE - Assets are copied to context.filesDir on Android for SFZ instruments. See the README for more info.
 * BREAKING CHANGE - SFZ player no longer handles URL-decoding asset paths
+
+## 0.4.1
+* Update README
