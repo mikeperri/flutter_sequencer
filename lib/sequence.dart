@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:flutter/foundation.dart';
+import 'package:equatable/equatable.dart';
 
 import 'constants.dart';
 import 'global_state.dart';
@@ -16,22 +16,27 @@ enum LoopState {
   AfterLoopEnd,
 }
 
-class SequenceState {
+/// Represents a snapshot state of a [Sequence].
+class SequenceState extends Equatable {
   SequenceState({
     required this.isPlaying,
     required this.tempo,
-    required this.endBeat,
+    required this.beat,
     required this.loopState,
-    required this.loopStartBeat,
-    required this.loopEndBeat,
   });
 
-  bool isPlaying;
-  double tempo;
-  double endBeat;
-  LoopState loopState;
-  double loopStartBeat;
-  double loopEndBeat;
+  final bool isPlaying;
+  final double tempo;
+  final double beat;
+  final LoopState loopState;
+
+  @override
+  List<Object?> get props => [
+        isPlaying,
+        tempo,
+        beat,
+        loopState,
+      ];
 }
 
 /// Represents a collection of tracks, play/pause state, position, loop state,
@@ -40,16 +45,9 @@ class Sequence {
   static final GlobalState globalState = GlobalState();
 
   Sequence({
-    required double tempo,
-    required double endBeat,
-  }) : _sequenceState = SequenceState(
-          isPlaying: false,
-          tempo: tempo,
-          endBeat: endBeat,
-          loopState: LoopState.Off,
-          loopStartBeat: 0,
-          loopEndBeat: 0,
-        ) {
+    required this.tempo,
+    required this.endBeat,
+  }) {
     id = globalState.registerSequence(this);
   }
 
@@ -64,8 +62,12 @@ class Sequence {
   late int id;
 
   // Sequencer state
-  SequenceState _sequenceState;
-  late ValueNotifier stateNotifier = ValueNotifier(_sequenceState);
+  bool isPlaying = false;
+  double tempo;
+  double endBeat;
+  LoopState loopState = LoopState.Off;
+  double loopStartBeat = 0;
+  double loopEndBeat = 0;
   double pauseBeat = 0;
   int engineStartFrame = 0;
 
@@ -146,15 +148,14 @@ class Sequence {
   /// Sets the tempo.
   void setTempo(double nextTempo) {
     // Update engine start frame to remove excess loops
-    final loopsElapsed = _sequenceState.loopState == LoopState.BeforeLoopEnd
+    final loopsElapsed = loopState == LoopState.BeforeLoopEnd
         ? getLoopsElapsed(_getFramesRendered())
         : 0;
     engineStartFrame += loopsElapsed * getLoopLengthFrames();
 
     // Update engine start frame to adjust to new tempo
     final framesRendered = _getFramesRendered();
-    final nextFramesRendered =
-        (framesRendered * (_sequenceState.tempo / nextTempo)).round();
+    final nextFramesRendered = (framesRendered * (tempo / nextTempo)).round();
     final framesToAdvance = framesRendered - nextFramesRendered;
     engineStartFrame += framesToAdvance;
 
@@ -172,7 +173,7 @@ class Sequence {
     checkIsOver();
 
     // Update engine start frame to remove excess loops
-    final loopsElapsed = _sequenceState.loopState == LoopState.BeforeLoopEnd
+    final loopsElapsed = loopState == LoopState.BeforeLoopEnd
         ? getLoopsElapsed(_getFramesRendered())
         : 0;
     engineStartFrame += loopsElapsed * getLoopLengthFrames();
@@ -195,7 +196,7 @@ class Sequence {
 
   /// Disables looping for the sequence.
   void unsetLoop() {
-    if (_sequenceState.loopState == LoopState.BeforeLoopEnd) {
+    if (loopState == LoopState.BeforeLoopEnd) {
       final loopsElapsed = getLoopsElapsed(_getFramesRendered());
 
       engineStartFrame += loopsElapsed * getLoopLengthFrames();
@@ -234,22 +235,32 @@ class Sequence {
       track.syncBuffer(engineStartFrame);
     });
 
-    if (_sequenceState.loopState != LoopState.Off) {
-      final loopEndFrame = beatToFrames(_sequenceState.loopEndBeat);
+    if (loopState != LoopState.Off) {
+      final loopEndFrame = beatToFrames(loopEndBeat);
       loopState = frame < loopEndFrame
           ? LoopState.BeforeLoopEnd
           : LoopState.AfterLoopEnd;
     }
   }
 
+  // Get the state of the sequencer
+  SequenceState getState() {
+    return SequenceState(
+      isPlaying: getIsPlaying(),
+      tempo: getTempo(),
+      beat: getBeat(),
+      loopState: loopState,
+    );
+  }
+
   /// Returns true if the sequence is playing.
   bool getIsPlaying() {
-    return _sequenceState.isPlaying && !getIsOver();
+    return isPlaying && !getIsOver();
   }
 
   /// Returns true if the sequence is at its end beat.
   bool getIsOver() {
-    return _getFrame(true) == beatToFrames(_sequenceState.endBeat);
+    return _getFrame(true) == beatToFrames(endBeat);
   }
 
   /// Gets the current beat. Returns a value based on the number of frames
@@ -261,14 +272,14 @@ class Sequence {
 
   /// Gets the current tempo.
   double getTempo() {
-    return _sequenceState.tempo;
+    return tempo;
   }
 
   /// {@macro flutter_sequencer_library_private}
   /// Returns the length of the loop in frames.
   int getLoopLengthFrames() {
-    final loopStartFrame = beatToFrames(_sequenceState.loopStartBeat);
-    final loopEndFrame = beatToFrames(_sequenceState.loopEndBeat);
+    final loopStartFrame = beatToFrames(loopStartBeat);
+    final loopEndFrame = beatToFrames(loopEndBeat);
 
     return loopEndFrame - loopStartFrame;
   }
@@ -277,7 +288,7 @@ class Sequence {
   /// Returns the number of loops that have been played
   /// since the sequence started playing.
   int getLoopsElapsed(int frame) {
-    final loopStartFrame = beatToFrames(_sequenceState.loopStartBeat);
+    final loopStartFrame = beatToFrames(loopStartBeat);
 
     if (frame <= loopStartFrame) return 0;
     if (getLoopLengthFrames() == 0) return 0;
@@ -289,7 +300,7 @@ class Sequence {
   /// Maps a frame beyond the end of the loop range to
   /// where it would be inside the loop range.
   int getLoopedFrame(int frame) {
-    final loopStartFrame = beatToFrames(_sequenceState.loopStartBeat);
+    final loopStartFrame = beatToFrames(loopStartBeat);
     final loopLengthFrames = getLoopLengthFrames();
 
     if (frame <= loopStartFrame || loopLengthFrames == 0) return frame;
@@ -301,7 +312,7 @@ class Sequence {
   /// Converts a beat to sample frames.
   int beatToFrames(double beat) {
     // (min / b) * (ms) * (ms / min)
-    final us = ((1 / _sequenceState.tempo) * beat * (60000000)).round();
+    final us = ((1 / tempo) * beat * (60000000)).round();
 
     return Sequence.globalState.usToFrames(us);
   }
@@ -312,16 +323,16 @@ class Sequence {
     final us = Sequence.globalState.framesToUs(frames);
 
     // (b / min) * us * (min / us)
-    return _sequenceState.tempo * us * (1 / 60000000);
+    return tempo * us * (1 / 60000000);
   }
 
   /// {@macro flutter_sequencer_library_private}
   /// Pauses this sequence if it is at its end.
   void checkIsOver() {
-    if (_sequenceState.isPlaying && getIsOver()) {
+    if (isPlaying && getIsOver()) {
       // Sequence is at end, pause
 
-      pauseBeat = _sequenceState.endBeat;
+      pauseBeat = endBeat;
       pause();
     }
   }
@@ -338,17 +349,15 @@ class Sequence {
   int _getFrame([bool estimateFramesSinceLastRender = true]) {
     if (!globalState.isEngineReady) return 0;
 
-    if (_sequenceState.isPlaying) {
+    if (isPlaying) {
       final frame = _getFramesRendered() +
           (estimateFramesSinceLastRender ? _getFramesSinceLastRender() : 0);
       final loopedFrame =
           loopState == LoopState.Off ? frame : getLoopedFrame(frame);
 
-      return max(min(loopedFrame, beatToFrames(_sequenceState.endBeat)), 0);
+      return max(min(loopedFrame, beatToFrames(endBeat)), 0);
     } else {
-      return max(
-          min(beatToFrames(pauseBeat), beatToFrames(_sequenceState.endBeat)),
-          0);
+      return max(min(beatToFrames(pauseBeat), beatToFrames(endBeat)), 0);
     }
   }
 

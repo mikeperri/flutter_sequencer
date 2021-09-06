@@ -1,11 +1,11 @@
 import 'dart:async';
 
-import 'package:example_2/sequence_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sequencer/global_state.dart';
 import 'package:flutter_sequencer/models/instrument.dart';
 import 'package:flutter_sequencer/models/sfz.dart';
 import 'package:flutter_sequencer/sequence.dart';
+import 'package:flutter_sequencer/sequence_controller.dart';
 
 class BeatCounter extends StatefulWidget {
   const BeatCounter({Key? key}) : super(key: key);
@@ -22,7 +22,6 @@ class _BeatCounterState extends State<BeatCounter>
     with SingleTickerProviderStateMixin {
   late SequenceController _sequenceController;
   late Sequence _sequence;
-  int beatNumber = 1;
 
   final instruments = [
     RuntimeSfzInstrument(
@@ -48,25 +47,8 @@ class _BeatCounterState extends State<BeatCounter>
 
     GlobalState().setKeepEngineRunning(true);
 
-    _sequence = Sequence(tempo: 80, endBeat: 7);
-    _sequence.createTracks(instruments).then((tracks) => null);
-    _sequence.loopState = LoopState.AfterLoopEnd;
-    _sequence.setLoop(0, 7);
-    _sequenceController = SequenceController(
-        vsync: this,
-        sequence: _sequence,
-        onBeatChanged: (beatNumber) {
-          setState(() {
-            this.beatNumber = beatNumber + 1;
-          });
-        });
-
-    /**
-     * OR could do it this way via dart streams, could be more extendable:
-     * _sequenceController.listenForChanges() // listen for changes in the sequence state (returns Stream<SequenceState>)
-     *     .onBeatChanged(() {...}) // a function that takes a stream of SeqeunceState and returns the same. If the beat position changes, it called the function passed into it
-     *     .onMyCustomStateChangeHandler() // it's possible for the user to manipulate the stream any way they want this way
-     */
+    _setupSequence();
+    _sequenceController = SequenceController(vsync: this, sequence: _sequence);
 
     // start playing after a second
     Timer(Duration(seconds: 1), () {
@@ -74,13 +56,27 @@ class _BeatCounterState extends State<BeatCounter>
     });
   }
 
+  void _setupSequence() {
+    _sequence = Sequence(tempo: 80, endBeat: 7);
+    _sequence.createTracks(instruments).then((tracks) => tracks.first
+        .addNote(noteNumber: 64, velocity: 1, startBeat: 0, durationBeats: 1));
+    _sequence.loopState = LoopState.AfterLoopEnd;
+    _sequence.setLoop(0, 7);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Center(
       child: Container(
-        child: Text(
-          '$beatNumber',
-          style: Theme.of(context).textTheme.headline4,
+        child: StreamBuilder<SequenceState>(
+          stream: _sequenceController.listenForChanges().distinctBeatPosition(),
+          builder: (context, sequencerState) {
+            final beat = (sequencerState.data?.beat.toInt() ?? 0) + 1;
+            return Text(
+              '$beat',
+              style: Theme.of(context).textTheme.headline4,
+            );
+          },
         ),
       ),
     );
