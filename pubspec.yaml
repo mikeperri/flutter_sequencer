@@ -14,11 +14,13 @@ dependencies:
     sdk: flutter
   ffi: ^1.0.0
   path: ^1.8.0
+  equatable: ^2.0.3
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   pedantic: ^1.11.0
+  mocktail: ^0.1.4
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
