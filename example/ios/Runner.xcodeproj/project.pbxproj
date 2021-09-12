@@ -358,7 +358,6 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = E92EJTVEYS;
 				ENABLE_BITCODE = NO;
-				FLUTTER_ROOT = /Users/mp/dev/flutter;
 				INFOPLIST_FILE = Runner/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -491,7 +490,6 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = E92EJTVEYS;
 				ENABLE_BITCODE = NO;
-				FLUTTER_ROOT = /Users/mp/dev/flutter;
 				INFOPLIST_FILE = Runner/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -516,7 +514,6 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = E92EJTVEYS;
 				ENABLE_BITCODE = NO;
-				FLUTTER_ROOT = /Users/mp/dev/flutter;
 				INFOPLIST_FILE = Runner/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

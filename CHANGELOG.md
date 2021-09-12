@@ -53,3 +53,6 @@
 
 ## 0.4.1
 * Update README
+
+## 0.4.2
+* Remove hard-coded FLUTTER_ROOT in example iOS app
