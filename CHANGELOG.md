@@ -56,3 +56,4 @@
 
 ## 0.4.2
 * Remove hard-coded FLUTTER_ROOT in example iOS app
+* Run `flutter format`

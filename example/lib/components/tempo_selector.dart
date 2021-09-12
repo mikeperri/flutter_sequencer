@@ -30,7 +30,8 @@ class _TempoSelectorState extends State<TempoSelector> {
   @override
   void initState() {
     super.initState();
-    controller = TextEditingController(text: widget.selectedTempo.toInt().toString());
+    controller =
+        TextEditingController(text: widget.selectedTempo.toInt().toString());
   }
 
   handleTextChange(String input) {
@@ -49,26 +50,23 @@ class _TempoSelectorState extends State<TempoSelector> {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Container(
-          child: Text('Tempo:'),
-          margin: EdgeInsets.only(right: 16.0),
+    return Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+      Container(
+        child: Text('Tempo:'),
+        margin: EdgeInsets.only(right: 16.0),
+      ),
+      Container(
+        width: 50,
+        height: 50,
+        child: TextField(
+          controller: controller,
+          maxLines: 1,
+          keyboardType: TextInputType.number,
+          onSubmitted: handleTextChange,
+          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+          decoration: InputDecoration(hintText: "..."),
         ),
-        Container(
-          width: 50,
-          height: 50,
-          child: TextField(
-            controller: controller,
-            maxLines: 1,
-            keyboardType: TextInputType.number,
-            onSubmitted: handleTextChange,
-            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-            decoration: InputDecoration(hintText: "..."),
-          ),
-        ),
-      ]
-    );
+      ),
+    ]);
   }
 }

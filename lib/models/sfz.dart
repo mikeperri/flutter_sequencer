@@ -68,8 +68,7 @@ class SfzControl {
   Map<String, String>? opcodes;
 
   String buildString() {
-    return '<control>\n' +
-      (opcodeMapToString(opcodes));
+    return '<control>\n' + (opcodeMapToString(opcodes));
   }
 }
 
@@ -81,8 +80,7 @@ class SfzGlobal {
   Map<String, String>? opcodes;
 
   String buildString() {
-    return '<global>\n' +
-      (opcodeMapToString(opcodes));
+    return '<global>\n' + (opcodeMapToString(opcodes));
   }
 }
 
@@ -94,8 +92,7 @@ class SfzEffect {
   Map<String, String>? opcodes;
 
   String buildString() {
-    return '<effect>\n' +
-      (opcodeMapToString(opcodes));
+    return '<effect>\n' + (opcodeMapToString(opcodes));
   }
 }
 
@@ -107,8 +104,7 @@ class SfzCurve {
   Map<String, String>? opcodes;
 
   String buildString() {
-    return '<curve>\n' +
-      (opcodeMapToString(opcodes));
+    return '<curve>\n' + (opcodeMapToString(opcodes));
   }
 }
 
@@ -161,11 +157,10 @@ class Sfz {
   String buildString() {
     _setNoteRanges();
 
-    return
-      (global?.buildString() ?? '') +
-      controls.map((c) => c.buildString()).join('') +
-      effects.map((e) => e.buildString()).join('') +
-      curves.map((c) => c.buildString()).join('') +
-      groups.map((g) => g.buildString()).join('');
+    return (global?.buildString() ?? '') +
+        controls.map((c) => c.buildString()).join('') +
+        effects.map((e) => e.buildString()).join('') +
+        curves.map((c) => c.buildString()).join('') +
+        groups.map((g) => g.buildString()).join('');
   }
 }

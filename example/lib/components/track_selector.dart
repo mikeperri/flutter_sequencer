@@ -16,14 +16,11 @@ class TrackSelector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DropdownButton<Track>(
-      value: selectedTrack,
-      onChanged: handleChange,
-      items: tracks.map((track) {
-        return DropdownMenuItem<Track>(
-          value: track,
-          child: Text(track.instrument.displayName)
-        );
-      }).toList()
-    );
+        value: selectedTrack,
+        onChanged: handleChange,
+        items: tracks.map((track) {
+          return DropdownMenuItem<Track>(
+              value: track, child: Text(track.instrument.displayName));
+        }).toList());
   }
 }

@@ -62,7 +62,8 @@ class MidiEvent extends SchedulerEvent {
     required int noteNumber,
     required int velocity,
   }) {
-    if (noteNumber > 127 || noteNumber < 0) throw 'noteNumber must be in range 0-127';
+    if (noteNumber > 127 || noteNumber < 0)
+      throw 'noteNumber must be in range 0-127';
     if (velocity > 127 || velocity < 0) throw 'Velocity must be in range 0-127';
 
     return MidiEvent(
@@ -77,7 +78,8 @@ class MidiEvent extends SchedulerEvent {
     required double beat,
     required int noteNumber,
   }) {
-    if (noteNumber > 127 || noteNumber < 0) throw 'noteNumber must be in range 0-127';
+    if (noteNumber > 127 || noteNumber < 0)
+      throw 'noteNumber must be in range 0-127';
 
     return MidiEvent(
       beat: beat,

@@ -13,17 +13,14 @@ class VolumeSlider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text('Volume:'),
-        Slider(
-          min: 0,
-          max: 1,
-          value: value,
-          onChanged: onChange,
-        ),
-      ]
-    );
+    return Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+      Text('Volume:'),
+      Slider(
+        min: 0,
+        max: 1,
+        value: value,
+        onChanged: onChange,
+      ),
+    ]);
   }
 }

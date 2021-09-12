@@ -23,10 +23,9 @@ class Transport extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         IconButton(
-          onPressed: onTogglePlayPause,
-          color: Colors.pink,
-          icon: Icon(isPlaying ? Icons.pause : Icons.play_arrow)
-        ),
+            onPressed: onTogglePlayPause,
+            color: Colors.pink,
+            icon: Icon(isPlaying ? Icons.pause : Icons.play_arrow)),
         IconButton(
           icon: Icon(Icons.stop),
           onPressed: onStop,

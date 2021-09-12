@@ -18,40 +18,46 @@ class Track {
   final events = <SchedulerEvent>[];
   int lastFrameSynced = 0;
 
-  Track._withId({required this.sequence, required this.id, required this.instrument});
+  Track._withId(
+      {required this.sequence, required this.id, required this.instrument});
 
   /// Creates a track in the underlying sequencer engine.
-  static Future<Track?> build({required Sequence sequence, required Instrument instrument}) async {
+  static Future<Track?> build(
+      {required Sequence sequence, required Instrument instrument}) async {
     int? id;
 
     if (instrument is Sf2Instrument) {
       id = await NativeBridge.addTrackSf2(
-        instrument.idOrPath, instrument.isAsset, instrument.presetIndex);
+          instrument.idOrPath, instrument.isAsset, instrument.presetIndex);
     } else if (instrument is SfzInstrument) {
       final sfzFile = File(instrument.idOrPath);
       String? normalizedSfzPath;
 
       if (instrument.isAsset) {
         final normalizedSfzDir =
-          await NativeBridge.normalizeAssetDir(sfzFile.parent.path);
+            await NativeBridge.normalizeAssetDir(sfzFile.parent.path);
 
-        if (normalizedSfzDir == null) throw Exception('Could not normalize asset dir for ${sfzFile.parent.path}');
+        if (normalizedSfzDir == null)
+          throw Exception(
+              'Could not normalize asset dir for ${sfzFile.parent.path}');
         normalizedSfzPath = '$normalizedSfzDir/${p.basename(sfzFile.path)}';
       } else {
         normalizedSfzPath = sfzFile.path;
       }
 
       id = await NativeBridge.addTrackSfz(
-        normalizedSfzPath, instrument.tuningPath);
+          normalizedSfzPath, instrument.tuningPath);
     } else if (instrument is RuntimeSfzInstrument) {
       final sfzContent = instrument.sfz.buildString();
       String? normalizedSampleRoot;
 
       if (instrument.isAsset) {
         normalizedSampleRoot =
-          await NativeBridge.normalizeAssetDir(instrument.sampleRoot);
+            await NativeBridge.normalizeAssetDir(instrument.sampleRoot);
 
-        if (normalizedSampleRoot == null) throw Exception('Could not normalize asset dir for ${instrument.sampleRoot}');
+        if (normalizedSampleRoot == null)
+          throw Exception(
+              'Could not normalize asset dir for ${instrument.sampleRoot}');
       } else {
         normalizedSampleRoot = instrument.sampleRoot;
       }
@@ -60,7 +66,7 @@ class Track {
       final fakeSfzDir = '$normalizedSampleRoot/does_not_exist.sfz';
 
       id = await NativeBridge.addTrackSfzString(
-        fakeSfzDir, sfzContent, instrument.tuningString);
+          fakeSfzDir, sfzContent, instrument.tuningString);
     } else if (instrument is AudioUnitInstrument) {
       id = await NativeBridge.addTrackAudioUnit(instrument.idOrPath);
     } else {

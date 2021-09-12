@@ -76,7 +76,9 @@ class GlobalState {
     final shouldPlayEngine = !_getIsPlaying();
 
     sequence.isPlaying = true;
-    sequence.engineStartFrame = LEAD_FRAMES + NativeBridge.getPosition() - sequence.beatToFrames(sequence.pauseBeat);
+    sequence.engineStartFrame = LEAD_FRAMES +
+        NativeBridge.getPosition() -
+        sequence.beatToFrames(sequence.pauseBeat);
 
     _syncAllBuffers();
 
@@ -169,10 +171,10 @@ class GlobalState {
     });
   }
 
-  void _syncAllBuffers([int? absoluteStartFrame, int maxEventsToSync = BUFFER_SIZE]) {
+  void _syncAllBuffers(
+      [int? absoluteStartFrame, int maxEventsToSync = BUFFER_SIZE]) {
     _getAllTracks().forEach((track) {
       track.syncBuffer(absoluteStartFrame, maxEventsToSync);
     });
   }
 }
-

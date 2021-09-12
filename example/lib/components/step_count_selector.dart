@@ -29,10 +29,8 @@ class StepCountSelector extends StatelessWidget {
           icon: Icon(Icons.arrow_back),
           onPressed: handleLess,
         ),
-        Text(
-          stepCount.toString(),
-          style: TextStyle(fontWeight: FontWeight.bold)
-        ),
+        Text(stepCount.toString(),
+            style: TextStyle(fontWeight: FontWeight.bold)),
         IconButton(
           icon: Icon(Icons.arrow_forward),
           onPressed: handleMore,

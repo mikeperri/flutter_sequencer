@@ -43,7 +43,7 @@ void _castComplete<R>(Completer<R> completer, Object value) {
 }
 
 Future<R> singleResponseFuture<R>(void Function(SendPort responsePort) action,
-  {Duration? timeout, R? timeoutValue}) {
+    {Duration? timeout, R? timeoutValue}) {
   var completer = Completer<R>.sync();
   var responsePort = RawReceivePort();
   Timer? timer;

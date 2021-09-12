@@ -20,8 +20,7 @@ class LabelRow extends StatelessWidget {
     // Build a row of label widgets
     final List<Widget> labelWidgets = [];
     for (var col = 0; col < columnLabels.length; col++) {
-      final labelWidget =
-      Listener(
+      final labelWidget = Listener(
         onPointerDown: (d) => onNoteOn(col),
         onPointerUp: (d) => onNoteOff(col),
         child: Container(

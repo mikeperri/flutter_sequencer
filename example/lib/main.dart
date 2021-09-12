@@ -53,44 +53,31 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
         tuningPath: "assets/sfz/meanquar.scl",
       ),
       RuntimeSfzInstrument(
-        id: "Sampled Synth",
-        sampleRoot: "assets/wav",
-        isAsset: true,
-        sfz: Sfz(
-          groups: [
-            SfzGroup(
-              regions: [
-                SfzRegion(sample: "D3.wav", key: 62),
-                SfzRegion(sample: "F3.wav", key: 65),
-                SfzRegion(sample: "Gsharp3.wav", key: 68),
-              ]
-            )
-          ]
-        )
-      ),
+          id: "Sampled Synth",
+          sampleRoot: "assets/wav",
+          isAsset: true,
+          sfz: Sfz(groups: [
+            SfzGroup(regions: [
+              SfzRegion(sample: "D3.wav", key: 62),
+              SfzRegion(sample: "F3.wav", key: 65),
+              SfzRegion(sample: "Gsharp3.wav", key: 68),
+            ])
+          ])),
       RuntimeSfzInstrument(
-        id: "Generated Synth",
-        // This SFZ doesn't use any sample files, so just put "/" as a placeholder.
-        sampleRoot: "/",
-        isAsset: false,
-        // Based on the Unison Oscillator example here:
-        // https://sfz.tools/sfizz/quick_reference#unison-oscillator
-        sfz: Sfz(
-          groups: [
-            SfzGroup(
-              regions: [
-                SfzRegion(
-                  sample: "*saw",
-                  otherOpcodes: {
-                    "oscillator_multi": "5",
-                    "oscillator_detune": "50",
-                  }
-                )
-              ]
-            )
-          ]
-        )
-      ),
+          id: "Generated Synth",
+          // This SFZ doesn't use any sample files, so just put "/" as a placeholder.
+          sampleRoot: "/",
+          isAsset: false,
+          // Based on the Unison Oscillator example here:
+          // https://sfz.tools/sfizz/quick_reference#unison-oscillator
+          sfz: Sfz(groups: [
+            SfzGroup(regions: [
+              SfzRegion(sample: "*saw", otherOpcodes: {
+                "oscillator_multi": "5",
+                "oscillator_detune": "50",
+              })
+            ])
+          ])),
     ];
 
     sequence.createTracks(instruments).then((tracks) {
