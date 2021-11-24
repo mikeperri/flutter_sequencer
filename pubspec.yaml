@@ -1,5 +1,5 @@
 name: flutter_sequencer
-version: 0.4.2
+version: 0.4.3
 description: >-
   A Flutter plugin for sequencing audio. Use it to build sequences of notes and play them back using
   SFZ or SF2 sound fonts.

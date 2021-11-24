@@ -57,3 +57,6 @@
 ## 0.4.2
 * Remove hard-coded FLUTTER_ROOT in example iOS app
 * Run `flutter format`
+
+## 0.4.3
+* Fix for sfizz.hpp file not found on ios release build
