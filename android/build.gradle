@@ -7,7 +7,7 @@ buildscript {
         google()
         jcenter()
         maven {
-            url "http://download.eclipse.org/jgit/maven"
+            url "https://download.eclipse.org/jgit/maven"
         }
     }
 
