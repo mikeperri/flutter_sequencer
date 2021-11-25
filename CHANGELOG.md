@@ -43,3 +43,6 @@
 
 ## 0.3.2
 * Set Xcode STRIP_STYLE to "non-global" in podspec
+
+## 0.3.3
+* Fix insecure http to https for maven in build gradle
