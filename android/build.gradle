@@ -6,13 +6,14 @@ buildscript {
     repositories {
         google()
         jcenter()
+        mavenCentral()
         maven {
             url "https://download.eclipse.org/jgit/maven"
         }
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:4.1.2'
+        classpath 'com.android.tools.build:gradle:7.0.0'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "org.eclipse.jgit:org.eclipse.jgit:5.5.+"
     }
