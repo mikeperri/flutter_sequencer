@@ -18,6 +18,10 @@ public:
     int32_t getBufferSize();
     void play();
     void pause();
+    void openStream();
+
+    // Inherited from oboe::AudioStreamErrorCallback.
+    void onErrorAfterClose(oboe::AudioStream *oboeStream, oboe::Result error) override;
 
     Mixer mSchedulerMixer;
 private:
