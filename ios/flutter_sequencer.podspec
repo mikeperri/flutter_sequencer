@@ -28,6 +28,7 @@ A new flutter plugin project.
   s.pod_target_xcconfig = {
     'DEFINES_MODULE' => 'YES',
     'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'arm64,i386',
+    'ENABLE_TESTABILITY' => 'YES',
     'STRIP_STYLE' => 'non-global',
     'HEADER_SEARCH_PATHS' => '$(PODS_TARGET_SRCROOT)/third_party/sfizz/src'
   }
