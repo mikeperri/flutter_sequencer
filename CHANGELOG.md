@@ -60,3 +60,6 @@
 
 ## 0.4.3
 * Fix for sfizz.hpp file not found on ios release build
+
+## 0.4.4
+* Add ENABLE_TESTABILITY back to pod target xcconfig to fix iOS release mode
