@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:equatable/equatable.dart';
+
 import 'constants.dart';
 import 'global_state.dart';
 import 'models/instrument.dart';
@@ -12,6 +14,29 @@ enum LoopState {
   Off,
   BeforeLoopEnd,
   AfterLoopEnd,
+}
+
+/// Represents a snapshot state of a [Sequence].
+class SequenceState extends Equatable {
+  SequenceState({
+    required this.isPlaying,
+    required this.tempo,
+    required this.beat,
+    required this.loopState,
+  });
+
+  final bool isPlaying;
+  final double tempo;
+  final double beat;
+  final LoopState loopState;
+
+  @override
+  List<Object?> get props => [
+        isPlaying,
+        tempo,
+        beat,
+        loopState,
+      ];
 }
 
 /// Represents a collection of tracks, play/pause state, position, loop state,
@@ -40,11 +65,11 @@ class Sequence {
   bool isPlaying = false;
   double tempo;
   double endBeat;
-  double pauseBeat = 0;
-  int engineStartFrame = 0;
   LoopState loopState = LoopState.Off;
   double loopStartBeat = 0;
   double loopEndBeat = 0;
+  double pauseBeat = 0;
+  int engineStartFrame = 0;
 
   /// Gets all tracks.
   List<Track> getTracks() {
@@ -216,6 +241,16 @@ class Sequence {
           ? LoopState.BeforeLoopEnd
           : LoopState.AfterLoopEnd;
     }
+  }
+
+  // Get the state of the sequencer
+  SequenceState getState() {
+    return SequenceState(
+      isPlaying: getIsPlaying(),
+      tempo: getTempo(),
+      beat: getBeat(),
+      loopState: loopState,
+    );
   }
 
   /// Returns true if the sequence is playing.
