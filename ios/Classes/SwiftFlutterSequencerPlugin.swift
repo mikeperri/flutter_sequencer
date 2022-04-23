@@ -43,7 +43,13 @@ public class SwiftFlutterSequencerPlugin: NSObject, FlutterPlugin {
         } else if (call.method == "addTrackAudioUnit") {
             let audioUnitId = (call.arguments as AnyObject)["id"] as! String
             addTrackAudioUnit(audioUnitId) { result($0) }
+        } else if (call.method == "never") {
+            preventStripping()
         }
+    }
+
+    func preventStripping() {
+        RegisterDart_PostCObject(nil)
     }
 }
 
