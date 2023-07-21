@@ -8,14 +8,14 @@ cd third_party
 if [ ! -d ios-cmake ]; then
     git clone https://github.com/leetal/ios-cmake.git
     cd ios-cmake
-    git checkout a7a5dd0e9ca8e818c0d73a1d3da06d830fa45970
+    git checkout b7b4f8e0a1a9b0ea0954a9a1b40ab34563731adc
     cd ..
 fi
 
 if [ ! -d sfizz ]; then
     git clone https://github.com/sfztools/sfizz.git
     cd sfizz
-    git checkout fc1f0451cebd8996992cbc4f983fcf76b03295c5
+    git checkout df95bb782f7c9070811a34aa324a48199cf93e19
     git submodule update --init --recursive
     cd ..
 fi
